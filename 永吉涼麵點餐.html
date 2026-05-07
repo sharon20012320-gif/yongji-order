@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>永吉涼麵 - 專業點餐系統</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #FDFBF7; color: #4A3728; }
+        .tab-active { border-bottom: 5px solid #E67E22; color: #E67E22; font-weight: 900; }
+        @media (min-width: 1024px) { .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; } }
+        .huge-text { font-size: 4rem; line-height: 1; font-weight: 900; }
+        .en-sub { font-size: 0.75rem; color: #888; text-transform: uppercase; display: block; }
+        .spicy-btn { font-size: 0.8rem; border: 1px solid #ddd; border-radius: 8px; padding: 6px 2px; background: white; }
+        .spicy-active { background-color: #C0392B !important; color: white !important; border-color: #C0392B !important; }
+        .price-big { font-size: 1.5rem; font-weight: 900; color: #C0392B; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const MENU_DATA = {
+            "涼麵": [
+                { name: "原味", en: "Original", pS: 55, pL: 65 },
+                { name: "芥末", en: "Mustard", pS: 55, pL: 65 },
+                { name: "素食", en: "Vegetarian", pS: 55, pL: 65 },
+                { name: "雞絲", en: "Shredded Chicken", pS: 65, pL: 75 },
+                { name: "三絲", en: "Three Shreds", pS: 65, pL: 75, note: "火腿、蛋絲、小黃瓜" },
+                { name: "炸醬", en: "Bean Paste", pS: 65, pL: 75 },
+                { name: "泰式", en: "Thai Style", pS: 70, pL: 80, fixedSpicy: "大辣 Extra Spicy" }
+            ],
+            "熱食": [
+                { name: "炒麵", en: "Fried Noodles", pS: 55, pL: 65 },
+                { name: "魯肉飯", en: "Braised Pork Rice", pS: 50, pL: 60 },
+                { name: "雞肉飯", en: "Chicken Rice", pS: 50, pL: 60 },
+                { name: "味噌蛋麵", en: "Miso Egg Noodles", price: 70 },
+                { name: "炸醬麵", en: "Bean Paste Noodles", price: 65 }
+            ],
+            "湯類": [
+                { name: "味噌", en: "Miso Soup", base: 30 },
+                { name: "紫菜", en: "Seaweed Soup", base: 30 },
+                { name: "蘿蔔", en: "Radish Soup", base: 35 },
+                { name: "蛋花", en: "Egg Drop Soup", base: 35 },
+                { name: "貢丸", en: "Meatball Soup", base: 45 }
+            ],
+            "小菜": [
+                { name: "魯蛋", en: "Braised Egg", price: 20 },
+                { name: "海帶", en: "Kelp", price: 15 },
+                { name: "小豆干", en: "Dried Tofu(S)", price: 15 },
+                { name: "大豆干", en: "Dried Tofu(L)", price: 25 },
+                { name: "素雞", en: "Vegetarian Chicken", price: 20 },
+                { name: "蘿蔔", en: "Braised Radish", price: 20 },
+                { name: "百頁", en: "Baiye Tofu", price: 25 },
+                { name: "麵腸", en: "Gluten Rolls", price: 25 },
+                { name: "素肚", en: "Vegetarian Tripe", price: 35 },
+                { name: "杏鮑菇", en: "King Oyster Mushroom", price: 35 }
+            ]
+        };
+
+        const SPICY_MAP = [
+            { cn: '大辣', en: 'EXTRA SPICY' }, { cn: '中辣', en: 'MEDIUM' },
+            { cn: '小辣', en: 'MILD' }, { cn: '微辣', en: 'LITTLE' }, { cn: '不辣', en: 'NO SPICY' }
+        ];
+
+        const App = () => {
+            const [view, setView] = useState('welcome');
+            const [step, setStep] = useState('home');
+            const [orderType, setOrderType] = useState('');
+            const [tableNum, setTableNum] = useState('');
+            const [cart, setCart] = useState([]);
+            const [activeTab, setActiveTab] = useState('涼麵');
+            const [sideConfig, setSideConfig] = useState({ sauce: '', onion: true, spicy: '不辣 NO SPICY' });
+            const [tempSpicy, setTempSpicy] = useState({});
+
+            const addToCart = (item, sizeLabel = '', extraType = '') => {
+                if (activeTab === '小菜' && !sideConfig.sauce) {
+                    alert('請先選擇口味調整 (Required Sauce)'); return;
+                }
+                let unitPrice = item.price || item.base || (sizeLabel === '大' ? item.pL : item.pS);
+                if (extraType === '加蛋') unitPrice += 15;
+                if (extraType === '加貢丸') unitPrice += 20;
+                if (extraType === '綜合') unitPrice += 35;
+
+                // 只有外帶才抓 tempSpicy，內用一律不顯示/不抓
+                const spice = orderType === '外帶' 
+                    ? (activeTab === '小菜' ? sideConfig.spicy : (item.fixedSpicy || tempSpicy[item.name] || '不辣 NO SPICY'))
+                    : (item.fixedSpicy || '內用(不選辣)');
+
+                const newItem = {
+                    cartId: Date.now() + Math.random(),
+                    name: item.name,
+                    displayName: `${item.name}${sizeLabel}${extraType}`,
+                    displayEn: `${item.en} ${sizeLabel==='大'?'Large':sizeLabel==='小'?'Small':''}`,
+                    unitPrice: unitPrice,
+                    count: 1,
+                    spice: spice,
+                    sideInfo: activeTab === '小菜' ? {...sideConfig} : null
+                };
+                setCart([...cart, newItem]);
+            };
+
+            const updateCount = (cartId, delta) => {
+                setCart(cart.map(item => 
+                    item.cartId === cartId 
+                        ? { ...item, count: Math.max(1, item.count + delta) } 
+                        : item
+                ));
+            };
+
+            const removeFromCart = (cartId) => setCart(cart.filter(i => i.cartId !== cartId));
+
+            if (view === 'welcome') {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FDFBF7] p-8">
+                        <div className="w-40 h-40 bg-red-700 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-12 shadow-2xl border-4 border-white text-center">永吉<br/>涼麵</div>
+                        {step === 'home' ? (
+                            <div className="w-full max-w-xl space-y-6">
+                                <button onClick={()=>{setOrderType('內用'); setStep('table');}} className="w-full py-12 bg-white border-4 border-orange-500 text-orange-600 rounded-[2rem] text-4xl font-black shadow-lg">內用 <span className="text-xl">DINE IN</span></button>
+                                <button onClick={()=>{setOrderType('外帶'); setView('menu');}} className="w-full py-12 bg-orange-500 text-white rounded-[2rem] text-4xl font-black shadow-lg">外帶 <span className="text-xl">TAKE OUT</span></button>
+                            </div>
+                        ) : (
+                            <div className="w-full max-w-2xl text-center">
+                                <h2 className="text-3xl font-black mb-8">請選擇桌號<br/><span className="text-lg font-normal text-gray-400">SELECT TABLE NUMBER</span></h2>
+                                <div className="grid grid-cols-4 gap-4">
+                                    {[1,2,3,5,6,7,8,9,10,11].map(n => (
+                                        <button key={n} onClick={()=>{setTableNum(n); setView('menu');}} className="py-8 bg-white border-4 border-orange-500 text-orange-600 rounded-3xl text-3xl font-black">{n}</button>
+                                    ))}
+                                </div>
+                                <button onClick={()=>setStep('home')} className="mt-10 text-gray-400 underline text-xl">返回上一頁 Back</button>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-6xl mx-auto pb-40">
+                    <header className="bg-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center">
+                        <div><span className="text-3xl font-black text-red-700">永吉涼麵</span> <span className="ml-3 bg-orange-100 px-4 py-2 rounded-xl font-bold text-orange-700">{orderType} {tableNum && `${tableNum}桌`}</span></div>
+                        <button onClick={()=>{setView('welcome'); setStep('home'); setTableNum('');}} className="text-gray-400 text-sm border p-2 rounded">重選 RESET</button>
+                    </header>
+
+                    <nav className="flex bg-white sticky top-[78px] z-40 border-b">
+                        {Object.keys(MENU_DATA).map(tab => (
+                            <button key={tab} onClick={()=>setActiveTab(tab)} className={`flex-1 py-5 text-2xl ${activeTab === tab ? 'tab-active' : 'text-gray-400'}`}>{tab}<span className="en-sub">{tab==='涼麵'?'Cold Noodle':tab==='熱食'?'Hot Food':tab==='湯類'?'Soup':'Sides'}</span></button>
+                        ))}
+                    </nav>
+
+                    <main className="p-4">
+                        {activeTab === '小菜' && (
+                            <div className="bg-orange-50 p-6 rounded-[2rem] mb-6 border-2 border-orange-200">
+                                <p className="font-bold text-2xl mb-4">小菜口味調整 <span className="text-sm font-normal">FLAVOR (REQUIRED)</span></p>
+                                <div className="grid grid-cols-3 gap-3 mb-4">
+                                    {[{cn:'蒜蓉醬油', en:'Garlic Soy'},{cn:'素蠔油', en:'Veg Oyster'},{cn:'不醬', en:'No Sauce'}].map(s => (
+                                        <button key={s.cn} onClick={()=>setSideConfig({...sideConfig, sauce:s.cn})} className={`py-4 rounded-2xl text-xl font-bold ${sideConfig.sauce === s.cn ? 'bg-orange-600 text-white shadow-md':'bg-white border'}`}>{s.cn}<br/><span className="text-[0.6rem]">{s.en}</span></button>
+                                    ))}
+                                </div>
+                                {/* 小菜辣度：內外帶皆顯示，因小菜辣度通常由店家加 */}
+                                <p className="font-bold mb-2">辣度 <span className="text-sm font-normal">SPICE</span></p>
+                                <div className="grid grid-cols-5 gap-1">
+                                    {SPICY_MAP.map(s => (
+                                        <button key={s.cn} onClick={()=>setSideConfig({...sideConfig, spicy:`${s.cn} ${s.en}`})} className={`py-2 rounded-xl text-[0.65rem] ${sideConfig.spicy.includes(s.cn) ? 'bg-red-700 text-white':'bg-white border'}`}>{s.cn}<br/>{s.en}</button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="menu-grid">
+                            {MENU_DATA[activeTab].map(item => (
+                                <div key={item.name} className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-lg flex flex-col justify-between mb-4">
+                                    <div>
+                                        <h3 className="text-4xl font-black">{item.name} <span className="en-sub">{item.en}</span></h3>
+                                        {item.note && <p className="text-blue-500 font-bold text-sm mt-1">({item.note})</p>}
+                                        {/* 外帶才顯示辣度選單 */}
+                                        {orderType === '外帶' && (activeTab === '涼麵' || activeTab === '熱食') && !item.fixedSpicy && (
+                                            <div className="mt-4 grid grid-cols-5 gap-1">
+                                                {SPICY_MAP.map(s => (
+                                                    <button key={s.cn} onClick={()=>setTempSpicy({...tempSpicy, [item.name]: `${s.cn} ${s.en}`})} className={`spicy-btn ${ (tempSpicy[item.name] || '不辣 NO SPICY').includes(s.cn) ? 'spicy-active' : '' }`}>{s.cn}<br/><span className="text-[0.55rem]">{s.en}</span></button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {item.fixedSpicy && <p className="mt-4 text-red-600 font-bold text-sm">*{item.fixedSpicy}</p>}
+                                    </div>
+                                    <div className="mt-6">
+                                        {item.pS ? (
+                                            <div className="flex gap-4">
+                                                <button onClick={()=>addToCart(item, '大')} className="flex-1 bg-orange-50 border-2 border-orange-200 py-8 rounded-[2rem] text-center"><span className="huge-text">大</span><br/><span className="price-big">${item.pL}</span><span className="en-sub">LARGE</span></button>
+                                                <button onClick={()=>addToCart(item, '小')} className="flex-1 bg-gray-50 border-2 border-gray-100 py-8 rounded-[2rem] text-center"><span className="huge-text">小</span><br/><span className="price-big">${item.pS}</span><span className="en-sub">SMALL</span></button>
+                                            </div>
+                                        ) : item.base ? (
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <button onClick={()=>addToCart(item)} className="bg-gray-100 py-4 rounded-2xl"><span className="text-2xl font-black">點餐</span><br/><span className="price-big">${item.base}</span><span className="en-sub">ORDER</span></button>
+                                                <button onClick={()=>addToCart(item,'','加蛋')} className="bg-orange-50 py-4 rounded-2xl"><span className="text-2xl font-black">加蛋</span><br/><span className="price-big">${item.base+15}</span><span className="en-sub">+ EGG</span></button>
+                                                <button onClick={()=>addToCart(item,'','加貢丸')} className="bg-orange-50 py-4 rounded-2xl"><span className="text-2xl font-black">加貢丸</span><br/><span className="price-big">${item.base+20}</span><span className="en-sub">+ MEATBALL</span></button>
+                                                <button onClick={()=>addToCart(item,'','綜合')} className="bg-orange-100 py-4 rounded-2xl border-2 border-orange-300"><span className="text-2xl font-black">綜合</span><br/><span className="price-big">${item.base+35}</span><span className="en-sub">COMBO</span></button>
+                                            </div>
+                                        ) : (
+                                            <button onClick={()=>addToCart(item)} className="w-full bg-orange-600 text-white py-6 rounded-3xl"><span className="text-3xl font-black">點餐 ORDER</span><br/><span className="text-2xl font-bold">${item.price}</span></button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+
+                    {cart.length > 0 && (
+                        <div className="fixed bottom-0 left-0 right-0 bg-white p-6 shadow-2xl border-t-8 border-orange-500 flex justify-between items-center z-50">
+                            <div><p className="text-5xl font-black text-red-600">${cart.reduce((s,i)=>s+(i.unitPrice*i.count), 0)}</p><p className="text-lg text-gray-400">桌號 {tableNum} | 已選 {cart.length} 品項</p></div>
+                            <button onClick={()=>setView('cart')} className="bg-orange-600 text-white px-12 py-6 rounded-[2rem] text-3xl font-black shadow-xl">確認清單<br/><span className="text-sm">VIEW CART</span></button>
+                        </div>
+                    )}
+
+                    {view === 'cart' && (
+                        <div className="fixed inset-0 bg-black/70 z-[60] flex items-end">
+                            <div className="bg-white w-full max-h-[92vh] rounded-t-[3rem] p-10 overflow-y-auto">
+                                <div className="flex justify-between items-center mb-8"><h2 className="text-4xl font-black">您的點餐清單</h2><button onClick={()=>setView('menu')} className="text-6xl">&times;</button></div>
+                                <div className="space-y-4">
+                                    {cart.map(i => (
+                                        <div key={i.cartId} className="flex justify-between items-center bg-gray-50 p-6 rounded-[2rem]">
+                                            <div className="flex-1">
+                                                <h3 className="text-2xl font-black">{i.displayName} <span className="text-orange-600 ml-2">${i.unitPrice}</span></h3>
+                                                <p className="text-sm text-gray-500">{i.displayEn} / {i.spice}</p>
+                                                {i.sideInfo && <p className="text-sm text-blue-600">口味：{i.sideInfo.sauce}</p>}
+                                            </div>
+                                            <div className="flex items-center gap-6">
+                                                <div className="flex items-center bg-white border-2 border-gray-200 rounded-2xl overflow-hidden">
+                                                    <button onClick={()=>updateCount(i.cartId, -1)} className="px-5 py-2 text-3xl font-bold bg-gray-50">-</button>
+                                                    <span className="px-6 text-3xl font-black">{i.count}</span>
+                                                    <button onClick={()=>updateCount(i.cartId, 1)} className="px-5 py-2 text-3xl font-bold bg-gray-50">+</button>
+                                                </div>
+                                                <button onClick={()=>removeFromCart(i.cartId)} className="text-4xl p-4 text-red-500">🗑️</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-10 border-t pt-6">
+                                    <p className="text-xl font-bold mb-3">備註 (20字內):</p>
+                                    <input type="text" maxLength="20" placeholder="不要蒜、麵硬一點..." className="w-full p-5 bg-gray-100 rounded-2xl text-2xl border-2 border-transparent outline-none" />
+                                    <button onClick={()=>setView('done')} className="w-full bg-red-600 text-white py-8 rounded-[2.5rem] text-4xl font-black mt-8 shadow-xl">送出訂單並領序號<br/><span className="text-lg font-normal">SEND ORDER</span></button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {view === 'done' && (
+                        <div className="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center p-8 text-center">
+                            <div className="w-24 h-24 bg-green-500 text-white rounded-full flex items-center justify-center text-5xl mb-6 shadow-lg">✓</div>
+                            <h2 className="text-5xl font-black mb-2 text-red-700">#082 下單成功!</h2>
+                            <div className="bg-gray-100 p-10 rounded-[3rem] w-full max-w-sm my-8 shadow-inner text-center">
+                                <p className="text-7xl font-black text-orange-600 my-4">#{Math.floor(Math.random()*900)+100}</p>
+                                <p className="text-2xl font-bold">{orderType} - {tableNum ? `${tableNum}桌` : '候餐'}</p>
+                                <p className="text-sm text-gray-400 mt-4">{new Date().toLocaleString()}</p>
+                            </div>
+                            <p className="text-4xl font-black text-red-600 animate-pulse">請至櫃檯結帳</p>
+                            <button onClick={()=>{ if(window.innerWidth > 1000) { setCart([]); setView('welcome'); setStep('home'); setTableNum(''); } }} className="mt-16 text-gray-300 underline text-lg">返回首頁 (限管理員)</button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
