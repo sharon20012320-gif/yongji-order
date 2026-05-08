@@ -20,7 +20,13 @@
     <script type="text/babel">
         const { useState } = React;
 
-        const scriptURL = 'https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec';
+        // --- 隱藏 URL 混淆處理 ---
+        const _p1 = 'https://script.google';
+        const _p2 = '.com/macros/s/';
+        const _p3 = 'AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62'; 
+        const _p4 = '/exec';
+        const scriptURL = _p1 + _p2 + _p3 + _p4;
+        // ----------------------
 
         const MENU_DATA = {
             "涼麵": [
@@ -48,7 +54,7 @@
             const [view, setView] = useState('welcome');
             const [orderType, setOrderType] = useState('');
             const [tableNum, setTableNum] = useState('');
-            const [peopleCount, setPeopleCount] = useState(''); // 新增人數狀態
+            const [peopleCount, setPeopleCount] = useState('');
             const [cart, setCart] = useState([]);
             const [activeTab, setActiveTab] = useState('涼麵');
             const [tempSpicy, setTempSpicy] = useState({});
@@ -71,10 +77,10 @@
             const submitOrder = async () => {
                 setIsSubmitting(true);
                 const orderData = {
-                    key: "yongji888", // 安全暗號
+                    key: "yongji888", 
                     orderType: orderType,
                     tableNum: tableNum,
-                    people: peopleCount || 1, // 傳送人數
+                    people: peopleCount || 1,
                     items: cart.map(i => `${i.displayName}(${i.spice}) x ${i.count}`).join(', '),
                     totalPrice: cart.reduce((s,i)=>s+(i.unitPrice*i.count), 0),
                     orderId: "#" + (Math.floor(Math.random()*900)+100)
@@ -114,7 +120,7 @@
                             value={peopleCount} 
                             onChange={(e) => setPeopleCount(e.target.value)}
                             placeholder="請輸入人數"
-                            className="w-full p-4 border-2 border-orange-500 rounded-xl text-2xl text-center focus:outline-none focus:ring-4 focus:ring-orange-200"
+                            className="w-full p-4 border-2 border-orange-500 rounded-xl text-2xl text-center focus:outline-none"
                         />
                     </div>
                     <label className="block mb-3 font-bold text-xl w-full max-w-md text-left">2. 點擊桌號進入：</label>
@@ -127,7 +133,7 @@
                                     setTableNum(n); 
                                     setView('menu');
                                 }} 
-                                className="py-6 bg-white border-2 border-orange-500 text-orange-600 rounded-2xl text-2xl font-bold active:bg-orange-500 active:text-white transition-colors"
+                                className="py-6 bg-white border-2 border-orange-500 text-orange-600 rounded-2xl text-2xl font-bold active:bg-orange-500 active:text-white"
                             >
                                 {n}
                             </button>
@@ -169,52 +175,4 @@
                                             <button onClick={()=>addToCart(item)} className="bg-gray-50 py-4 rounded-xl text-lg font-bold">單點 ${item.base}</button>
                                             <button onClick={()=>addToCart(item,'','加蛋')} className="bg-orange-50 py-4 rounded-xl text-lg font-bold">加蛋 $40</button>
                                             <button onClick={()=>addToCart(item,'','加貢丸')} className="bg-orange-50 py-4 rounded-xl text-lg font-bold">加貢丸 $45</button>
-                                            {item.name !== '蛋花' && item.name !== '貢丸' && <button onClick={()=>addToCart(item,'','綜合')} className="bg-orange-100 py-4 rounded-xl text-lg font-bold">綜合 $60</button>}
-                                        </div>
-                                    ) : (
-                                        <button onClick={()=>addToCart(item)} className="w-full bg-orange-600 text-white py-5 rounded-2xl text-2xl font-black">點餐 ${item.price}</button>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </main>
-                    {cart.length > 0 && (
-                        <div className="fixed bottom-0 left-0 right-0 bg-white p-6 shadow-2xl border-t-4 border-orange-500 flex justify-between items-center z-50">
-                            <span className="text-4xl font-black text-red-600">${cart.reduce((s,i)=>s+(i.unitPrice*i.count), 0)}</span>
-                            <button onClick={()=>setView('cart')} className="bg-orange-600 text-white px-10 py-4 rounded-2xl text-2xl font-black">確認清單 ({cart.length})</button>
-                        </div>
-                    )}
-                    {view === 'cart' && (
-                        <div className="fixed inset-0 bg-black/60 z-[60] flex items-end">
-                            <div className="bg-white w-full max-h-[85vh] rounded-t-[2rem] p-8 overflow-y-auto">
-                                <div className="flex justify-between items-center mb-6 text-2xl font-black"><h2>您的訂單內容</h2><button onClick={()=>setView('menu')} className="text-4xl">&times;</button></div>
-                                {cart.map(i => (
-                                    <div key={i.cartId} className="flex justify-between items-center border-b py-4">
-                                        <div className="text-xl font-bold">{i.displayName} <span className="text-sm text-gray-400">({i.spice})</span><br/>${i.unitPrice}</div>
-                                        <button onClick={()=>{setCart(cart.filter(c=>c.cartId!==i.cartId))}} className="text-2xl text-red-400">🗑️</button>
-                                    </div>
-                                ))}
-                                <button 
-                                    onClick={submitOrder} 
-                                    disabled={isSubmitting}
-                                    className={`w-full py-6 rounded-2xl text-3xl font-black mt-8 text-white ${isSubmitting ? 'bg-gray-400' : 'bg-red-600'}`}>
-                                    {isSubmitting ? '傳送中...' : '送出訂單'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    {view === 'done' && (
-                        <div className="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center p-8 text-center">
-                            <div className="w-32 h-32 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-6xl mb-6">✓</div>
-                            <h2 className="text-4xl font-black text-red-700">下單成功!</h2>
-                            <p className="text-xl mt-4">請告知店員您的桌號或編號</p>
-                            <button onClick={()=>location.reload()} className="mt-12 text-gray-400 underline">返回首頁</button>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-    </script>
-</body>
-</html>
+                                            {item.name !== '蛋花' && item.name !== '貢丸'
