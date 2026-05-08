@@ -66,9 +66,7 @@
                 if (extra === '加貢丸') unitP = 45;
                 if (extra === '綜合') unitP = 60;
 
-                // 辣度邏輯：泰式固定大辣，其他看 spicyPrefs，預設不辣
                 const currentSpicy = item.fixed || spicyPrefs[item.name] || '不辣';
-
                 const note = tab === '小菜' 
                     ? `(${gSauce}, ${gOnion}${orderType === '外帶' ? ', ' + gSpicy : ''})`
                     : `(${orderType === '外帶' ? currentSpicy : '內用'})`;
@@ -97,24 +95,23 @@
             };
 
             const submitOrder = async () => {
-  const submitOrder = async () => {
                 setIsSending(true);
                 const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
                 
-                // 為了對接你的後台腳本，這裡必須使用相同的 Key 名稱
+                // 🛠️ 關鍵修正：對應你的 GAS 後台變數名稱
                 const final = {
-                    key: "yongji888",              // 暗號檢查
-                    orderType: orderType,          // 後台用這個判斷「內用」或「外帶」
-                    tableNum: table,               // 後台用這個抓桌號數字
-                    people: people,                // 後台會顯示在第 3 欄
+                    key: "yongji888",              
+                    orderType: orderType,          // 必須是 "內用" 或 "外帶"
+                    tableNum: table,               // 必須是桌號數字
+                    people: people,                
                     items: cart.map(i => `${i.title}${i.note} x ${i.qty}`).join(', '),
-                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0), // 注意：後台是用 totalPrice
+                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0), 
                     orderId: orderId,
                 };
 
                 setFinishData({
                     ...final,
-                    total: final.totalPrice, // 供前端顯示使用
+                    total: final.totalPrice, 
                     cart: [...cart]
                 });
 
@@ -124,23 +121,8 @@
                         mode: 'no-cors', 
                         body: JSON.stringify(final) 
                     });
-                } catch(e) { 
-                    console.error("發送失敗:", e); 
-                }
-                
-                setView('finish');
-                setIsSending(false);
-            };
-
-                setFinishData(final);
-                try {
-                    // 傳送資料到 Google Sheets
-                    await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        body: JSON.stringify({...final, key: "yongji888"}) 
-                    });
                 } catch(e) { console.error(e); }
+                
                 setView('finish');
                 setIsSending(false);
             };
