@@ -59,7 +59,6 @@
             const [isSending, setIsSending] = useState(false);
             const [finishData, setFinishData] = useState(null);
 
-            // 1. 營業時間檢查邏輯
             useEffect(() => {
                 const checkTime = () => {
                     const now = new Date();
@@ -90,27 +89,14 @@
                 setCounts({...counts, [cKey]: 1});
             };
 
-            const updateCartQty = (id, delta) => {
-                setCart(prev => prev.map(item => {
-                    if (item.id === id) {
-                        const newQty = Math.max(1, item.qty + delta);
-                        return { ...item, qty: newQty };
-                    }
-                    return item;
-                }));
-            };
-
             const submitOrder = async () => {
                 setIsSending(true);
                 const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
                 const timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
                 
-                // 🔍 辣度明細彙整邏輯
                 const summaryMap = {};
                 cart.forEach(item => {
-                    if (!summaryMap[item.title]) {
-                        summaryMap[item.title] = { total: 0, spicies: {} };
-                    }
+                    if (!summaryMap[item.title]) summaryMap[item.title] = { total: 0, spicies: {} };
                     summaryMap[item.title].total += item.qty;
                     const noteClean = item.note.replace(/[()]/g, '');
                     summaryMap[item.title].spicies[noteClean] = (summaryMap[item.title].spicies[noteClean] || 0) + item.qty;
@@ -118,9 +104,7 @@
 
                 const displayLines = Object.keys(summaryMap).map(title => {
                     const data = summaryMap[title];
-                    const spicyDetails = Object.entries(data.spicies)
-                        .map(([label, count]) => `${label}*${count}`)
-                        .join('、');
+                    const spicyDetails = Object.entries(data.spicies).map(([l, c]) => `${l}*${c}`).join('、');
                     return `${title} x ${data.total} (${spicyDetails})`;
                 });
 
@@ -146,7 +130,6 @@
                 setIsSending(false);
             };
 
-            // 2. 休息中畫面
             if (isResting) return (
                 <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-[#FDFBF7] text-center">
                     <div className="w-44 h-44 bg-gray-400 rounded-full flex items-center justify-center text-white text-4xl font-black mb-8 shadow-2xl">永吉<br/>涼麵</div>
@@ -172,9 +155,9 @@
                 <div className="flex flex-col items-center justify-center min-h-screen p-6">
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-xl w-full max-sm border border-orange-100">
                         <h2 className="text-3xl font-black mb-8 text-center text-orange-800">用餐資訊</h2>
-                        <label className="block mb-2 font-bold text-lg">用餐人數：</label>
+                        <label className="block mb-2 font-bold text-lg text-center">用餐人數：</label>
                         <input type="number" value={people} onChange={(e)=>setPeople(e.target.value)} className="w-full p-5 border-2 border-orange-500 rounded-2xl text-center text-3xl mb-10" />
-                        <label className="block mb-4 font-bold text-lg">選擇桌號：</label>
+                        <label className="block mb-4 font-bold text-lg text-center">選擇桌號：</label>
                         <div className="grid grid-cols-4 gap-3">
                             {[1,2,3,5,6,7,8,9,10,11].map(n => (
                                 <button key={n} onClick={()=>{setTable(n); setView('menu');}} className={`py-5 rounded-2xl text-2xl font-black border-2 ${table === n ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-50 border-orange-200 text-orange-700'}`}>{n}</button>
@@ -190,19 +173,15 @@
                         <div className="text-7xl mb-6">✅</div>
                         <h2 className="text-4xl font-black text-gray-800 mb-2">訂單已送出</h2>
                         <p className="text-orange-600 font-bold text-2xl mb-1">單號：{finishData?.orderId}</p>
-                        <p className="text-gray-400 text-xs mb-1 font-bold">為流水號，與順序無關</p>
                         <p className="text-gray-400 text-sm mb-6">送出時間：{finishData?.finishTime}</p>
-                        
                         <div className="text-left bg-orange-50 p-6 rounded-2xl mb-8 space-y-2">
                             {finishData?.displayLines.map((line, idx) => (
                                 <div key={idx} className="text-gray-600 font-bold">● {line}</div>
                             ))}
                             <div className="border-t border-orange-200 mt-4 pt-2 text-2xl font-black text-red-600 text-right">總計：${finishData?.totalPrice}</div>
                         </div>
-
                         <div className="bg-red-600 text-white py-6 px-4 rounded-2xl shadow-lg">
                             <p className="text-2xl font-black mb-1">請至櫃檯結帳</p>
-                            <p className="text-sm font-bold opacity-80">感謝您的光臨，餐點準備中</p>
                         </div>
                     </div>
                 </div>
@@ -214,17 +193,15 @@
                         <h1 className="text-3xl font-black italic">永吉涼麵</h1>
                         <span className="bg-orange-600 text-white px-4 py-1 rounded-full font-bold text-sm">{orderType} {table && `${table}桌`}</span>
                     </header>
-                    
                     <nav className="flex bg-white sticky top-[72px] z-40 border-b no-print shadow-sm overflow-x-auto">
                         {Object.keys(MENU).map(k => (
                             <button key={k} onClick={()=>setTab(k)} className={`flex-1 py-5 text-2xl min-w-[100px] ${tab === k ? 'tab-active' : 'text-gray-400 font-bold'}`}>{k}</button>
                         ))}
                     </nav>
-
                     <main className="p-4 space-y-6 no-print">
                         {tab === '小菜' && (
                             <div className="bg-orange-600 p-6 rounded-[2rem] text-white shadow-xl space-y-4 border-4 border-orange-400">
-                                <h3 className="font-black text-xl">🥗 小菜口味調整</h3>
+                                <h3 className="font-black text-xl text-center">🥗 小菜口味調整</h3>
                                 <div className="grid grid-cols-3 gap-2">
                                     {['蒜蓉醬油','素醬油','不加醬'].map(s => <button key={s} onClick={()=>setGSauce(s)} className={`py-3 rounded-xl text-sm font-bold border-2 ${gSauce===s?'bg-white text-orange-600 border-white':'border-orange-400'}`}>{s}</button>)}
                                 </div>
@@ -238,7 +215,6 @@
                                 )}
                             </div>
                         )}
-
                         {MENU[tab].map(item => (
                             <div key={item.name} className="bg-white p-6 rounded-[2rem] shadow-md border border-orange-50">
                                 <div className="flex justify-between items-center mb-4">
@@ -246,13 +222,7 @@
                                     {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
                                         <div className="flex gap-1 flex-wrap justify-end">
                                             {['不辣','微','小','中','大'].map(s => (
-                                                <button 
-                                                    key={s} 
-                                                    onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} 
-                                                    className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-300 border-gray-100'}`}
-                                                >
-                                                    {s}
-                                                </button>
+                                                <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-300 border-gray-100'}`}>{s}</button>
                                             ))}
                                         </div>
                                     )}
@@ -280,7 +250,6 @@
                             </div>
                         ))}
                     </main>
-
                     {cart.length > 0 && view !== 'finish' && (
                         <div className="fixed bottom-8 left-6 right-6 no-print z-50">
                             <button onClick={()=>setView('cart')} className="w-full bg-red-700 text-white p-6 rounded-[2.5rem] shadow-2xl flex justify-between items-center px-10 active:scale-95 transition-transform border-4 border-red-800">
@@ -289,7 +258,6 @@
                             </button>
                         </div>
                     )}
-
                     {view === 'cart' && (
                         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-end no-print">
                             <div className="bg-white w-full max-h-[85vh] rounded-t-[3.5rem] p-8 overflow-y-auto shadow-2xl">
