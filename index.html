@@ -239,7 +239,7 @@
                                     {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
                                         <div className="flex gap-1 flex-wrap justify-end">
                                             {['不辣','微辣','小辣','中辣','大辣'].map(s => (
-                                                <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-300 border-gray-100'}`}>{s}</button>
+                                                <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-600 border-gray-200 font-black'}`}>{s}</button>
                                             ))}
                                         </div>
                                     )}
