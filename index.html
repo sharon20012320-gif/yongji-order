@@ -11,7 +11,7 @@
     <style>
         body { background-color: #FDFBF7; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
         .tab-active { border-bottom: 4px solid #E67E22; color: #E67E22; font-weight: 900; }
-        .spicy-btn-active { background-color: #C0392B !important; color: white !important; }
+        .spicy-btn-active { background-color: #C0392B !important; color: white !important; border-color: #C0392B !important; }
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
@@ -66,17 +66,22 @@
                 if (extra === '加貢丸') unitP = 45;
                 if (extra === '綜合') unitP = 60;
 
+                // 辣度邏輯：泰式固定大辣，其他看 spicyPrefs，預設不辣
+                const currentSpicy = item.fixed || spicyPrefs[item.name] || '不辣';
+
                 const note = tab === '小菜' 
                     ? `(${gSauce}, ${gOnion}${orderType === '外帶' ? ', ' + gSpicy : ''})`
-                    : `(${orderType === '外帶' ? (item.fixed || spicyPrefs[item.name] || '不辣') : '內用'})`;
+                    : `(${orderType === '外帶' ? currentSpicy : '內用'})`;
 
-                const existingIndex = cart.findIndex(i => i.title === `${item.name}${label}${extra}` && i.note === note);
+                const title = `${item.name}${label}${extra}`;
+                const existingIndex = cart.findIndex(i => i.title === title && i.note === note);
+                
                 if (existingIndex > -1) {
                     const newCart = [...cart];
                     newCart[existingIndex].qty += qty;
                     setCart(newCart);
                 } else {
-                    setCart([...cart, { id: Date.now() + Math.random(), title: `${item.name}${label}${extra}`, unitP, qty, note }]);
+                    setCart([...cart, { id: Date.now() + Math.random(), title, unitP, qty, note }]);
                 }
                 setCounts({...counts, [cKey]: 1});
             };
@@ -95,16 +100,26 @@
                 setIsSending(true);
                 const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
                 const timeStr = new Date().toLocaleString('zh-TW');
+                
+                // 修正後台顯示問題：將 type 欄位明確化
                 const final = {
-                    type: orderType, table, people,
+                    type: orderType === '內用' ? `內用(${table}桌)` : '外帶',
+                    table: table || '外帶',
+                    people: people,
                     items: cart.map(i => `${i.title}${i.note} x ${i.qty}`).join(', '),
                     total: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
-                    orderId, time: timeStr, cart: [...cart]
+                    orderId, 
+                    time: timeStr, 
+                    cart: [...cart]
                 };
+
                 setFinishData(final);
                 try {
+                    // 傳送資料到 Google Sheets
                     await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
-                        method: 'POST', mode: 'no-cors', body: JSON.stringify({...final, key: "yongji888"}) 
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        body: JSON.stringify({...final, key: "yongji888"}) 
                     });
                 } catch(e) { console.error(e); }
                 setView('finish');
@@ -116,7 +131,7 @@
                     <div className="w-44 h-44 bg-red-700 rounded-full flex items-center justify-center text-white text-4xl font-black mb-16 shadow-2xl text-center">永吉<br/>涼麵</div>
                     <div className="w-full max-w-xs space-y-6">
                         <button onClick={()=>{setOrderType('內用'); setView('setup');}} className="w-full py-12 bg-white border-4 border-orange-500 text-orange-600 rounded-[2rem] text-5xl font-black shadow-lg">內用</button>
-                        <button onClick={()=>{setOrderType('外帶'); setView('menu');}} className="w-full py-12 bg-orange-500 text-white rounded-[2rem] text-5xl font-black shadow-lg">外帶</button>
+                        <button onClick={()=>{setOrderType('外帶'); setView('menu'); setTable('');}} className="w-full py-12 bg-orange-500 text-white rounded-[2rem] text-5xl font-black shadow-lg">外帶</button>
                     </div>
                 </div>
             );
@@ -130,7 +145,7 @@
                         <label className="block mb-4 font-bold text-lg">選擇桌號：</label>
                         <div className="grid grid-cols-4 gap-3">
                             {[1,2,3,5,6,7,8,9,10,11].map(n => (
-                                <button key={n} onClick={()=>{setTable(n); setView('menu');}} className="py-5 bg-orange-50 border-2 border-orange-200 text-orange-700 rounded-2xl text-2xl font-black">{n}</button>
+                                <button key={n} onClick={()=>{setTable(n); setView('menu');}} className={`py-5 rounded-2xl text-2xl font-black border-2 ${table === n ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-50 border-orange-200 text-orange-700'}`}>{n}</button>
                             ))}
                         </div>
                     </div>
@@ -156,7 +171,7 @@
                 <div className="max-w-4xl mx-auto pb-44">
                     <header className="bg-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center no-print text-red-700">
                         <h1 className="text-3xl font-black italic">永吉涼麵</h1>
-                        <span className="bg-orange-600 text-white px-4 py-1 rounded-full font-bold text-sm">{orderType} {table && `${table}桌`} / {people}人</span>
+                        <span className="bg-orange-600 text-white px-4 py-1 rounded-full font-bold text-sm">{orderType} {table && `${table}桌`}</span>
                     </header>
                     
                     <nav className="flex bg-white sticky top-[72px] z-40 border-b no-print shadow-sm overflow-x-auto">
@@ -188,8 +203,19 @@
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="text-3xl font-black text-gray-800">{item.name}</h3>
                                     {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
-                                        <div className="flex gap-1">
-                                            {['微','小','中','大'].map(s => <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]:s+'辣'})} className={`w-10 h-10 rounded-full border-2 font-bold text-xs ${(spicyPrefs[item.name]||'不辣')===s+'辣'?'spicy-btn-active':'text-gray-300'}`}>{s}</button>)}
+                                        <div className="flex gap-1 flex-wrap justify-end">
+                                            {['不辣','微','小','中','大'].map(s => {
+                                                const label = s === '不辣' ? s : s + '辣';
+                                                return (
+                                                    <button 
+                                                        key={s} 
+                                                        onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: label})} 
+                                                        className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===label?'spicy-btn-active':'text-gray-300 border-gray-100'}`}
+                                                    >
+                                                        {s}
+                                                    </button>
+                                                )
+                                            })}
                                         </div>
                                     )}
                                 </div>
