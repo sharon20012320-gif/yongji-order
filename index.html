@@ -212,7 +212,7 @@
                                     <h3 className="text-3xl font-black text-gray-800">{item.name}</h3>
                                     {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
                                         <div className="flex gap-1 flex-wrap justify-end">
-                                            {['不辣','微','小','中','大'].map(s => {
+                                            {['不辣','微辣','小辣','中辣','大辣'].map(s => {
                                                 const label = s === '不辣' ? s : s + '辣';
                                                 return (
                                                     <button 
