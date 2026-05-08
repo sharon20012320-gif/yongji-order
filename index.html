@@ -79,7 +79,7 @@
                 if (extra === '加貢丸') unitP = 45;
                 if (extra === '綜合') unitP = 60;
 
-                const currentSpicy = item.fixed || spicyPrefs[item.name] || '不辣';
+                const currentSpicy = item.fixed || (spicyPrefs[item.name] ? (spicyPrefs[item.name].length === 1 ? spicyPrefs[item.name] + '辣' : spicyPrefs[item.name]) : '不辣');
                 const note = tab === '小菜' 
                     ? `(${gSauce}, ${gOnion}${orderType === '外帶' ? ', ' + gSpicy : ''})`
                     : `(${orderType === '外帶' ? currentSpicy : '內用'})`;
@@ -87,6 +87,17 @@
                 const title = `${item.name}${label}${extra}`;
                 setCart([...cart, { id: Date.now() + Math.random(), title, unitP, qty, note }]);
                 setCounts({...counts, [cKey]: 1});
+            };
+
+            // ✅ 修正：新增購物車加減功能
+            const updateCartQty = (id, delta) => {
+                setCart(prev => prev.map(item => {
+                    if (item.id === id) {
+                        const newQty = Math.max(1, item.qty + delta);
+                        return { ...item, qty: newQty };
+                    }
+                    return item;
+                }));
             };
 
             const submitOrder = async () => {
@@ -274,7 +285,11 @@
                                                 <span className="text-2xl font-black text-red-600">${i.unitP * i.qty}</span>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <span className="text-2xl font-black">x {i.qty}</span>
+                                                <div className="flex items-center bg-white rounded-full border-2 border-orange-200 px-2">
+                                                    <button onClick={()=>updateCartQty(i.id, -1)} className="w-8 h-8 text-2xl font-black text-orange-500">-</button>
+                                                    <span className="w-8 text-center font-black">{i.qty}</span>
+                                                    <button onClick={()=>updateCartQty(i.id, 1)} className="w-8 h-8 text-2xl font-black text-orange-500">+</button>
+                                                </div>
                                                 <button onClick={()=>setCart(cart.filter(c=>c.id!==i.id))} className="text-3xl">🗑️</button>
                                             </div>
                                         </div>
