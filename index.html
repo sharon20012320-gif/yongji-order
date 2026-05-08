@@ -238,7 +238,7 @@
                                     <h3 className="text-3xl font-black text-gray-800">{item.name}</h3>
                                     {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
                                         <div className="flex gap-1 flex-wrap justify-end">
-                                            {['不辣','微','小','中','大'].map(s => (
+                                            {['不辣','微辣','小辣','中辣','大辣'].map(s => (
                                                 <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-300 border-gray-100'}`}>{s}</button>
                                             ))}
                                         </div>
@@ -296,7 +296,7 @@
                                                     <span className="w-8 text-center font-black">{i.qty}</span>
                                                     <button onClick={()=>updateCartQty(i.id, 1)} className="w-8 h-8 text-2xl font-black text-orange-500">+</button>
                                                 </div>
-                                                <button onClick={()=>setCart(cart.filter(c=>c.id!==i.id))} className="text-3xl">🗑️</button>
+                                                <button onClick={()=>setCart(cart.filter(c=>c.id!==i.id))} className="text-3xl">❌️</button>
                                             </div>
                                         </div>
                                     ))}
