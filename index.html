@@ -275,7 +275,7 @@
                                                     <div className="text-xl font-black text-gray-700">{i.title}</div>
                                                     <div className="text-sm text-gray-400 font-bold">{i.note}</div>
                                                 </div>
-                                                <button onClick={()=>setCart(cart.filter(c=>c.id!==i.id))} className="text-3xl ml-4">🗑️</button>
+                                                <button onClick={()=>setCart(cart.filter(c=>c.id!==i.id))} className="text-3xl ml-4">❌</button>
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-2xl font-black text-red-600">${i.unitP * i.qty}</span>
