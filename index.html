@@ -11,7 +11,7 @@
     <style>
         body { font-family: sans-serif; background-color: #FDFBF7; color: #4A3728; -webkit-tap-highlight-color: transparent; }
         .tab-active { border-bottom: 6px solid #E67E22; color: #E67E22; font-weight: 900; }
-        .spicy-active { background-color: #C0392B !important; color: white !important; border-color: #C0392B !important; }
+        .spicy-active { background-color: #C0392B !important; color: white !important; }
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
@@ -19,10 +19,6 @@
     <div id="root"></div>
     <script type="text/babel">
         const { useState } = React;
-
-        const _p1 = 'https://script.google'; const _p2 = '.com/macros/s/';
-        const _p3 = 'AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62'; 
-        const _p4 = '/exec'; const scriptURL = _p1 + _p2 + _p3 + _p4;
 
         const MENU_DATA = {
             "涼麵": [
@@ -50,52 +46,24 @@
             const [view, setView] = useState('welcome');
             const [orderType, setOrderType] = useState('');
             const [tableNum, setTableNum] = useState('');
-            const [peopleCount, setPeopleCount] = useState(1);
+            const [people, setPeople] = useState(1);
             const [cart, setCart] = useState([]);
             const [activeTab, setActiveTab] = useState('涼麵');
             
-            // 全域小菜設定
-            const [gSauce, setGSauce] = useState('蒜蓉醬油');
-            const [gOnion, setGOnion] = useState('加蔥');
-            const [gSpicy, setGSpicy] = useState('不辣');
+            // 小菜全域設定
+            const [sauce, setSauce] = useState('蒜蓉醬油');
+            const [onion, setOnion] = useState('加蔥');
+            const [sideSpicy, setSideSpicy] = useState('不辣');
             
-            const [tempSpicy, setTempSpicy] = useState({});
+            const [spicyMap, setSpicyMap] = useState({});
             const [counts, setCounts] = useState({});
             const [submitting, setSubmitting] = useState(false);
-            const [finalInfo, setFinalInfo] = useState(null);
+            const [orderResult, setOrderResult] = useState(null);
 
-            const addItem = (item, size = '', extra = '') => {
-                const key = `${item.name}-${size}-${extra}`;
+            const addToCart = (item, label = '', extra = '') => {
+                const key = `${item.name}-${label}-${extra}`;
                 const count = counts[key] || 1;
-                let price = item.price || item.base || (size === '大' ? item.pL : item.pS);
+                let price = item.price || item.base || (label === '大' ? item.pL : item.pS);
                 if (extra === '加蛋') price = 40;
                 if (extra === '加貢丸') price = 45;
-                if (extra === '綜合') price = 60;
-
-                const detail = activeTab === '小菜' 
-                    ? `(${gSauce}, ${gOnion}${orderType === '外帶' ? ', ' + gSpicy : ''})`
-                    : `(${orderType === '外帶' ? (item.fixedSpicy || tempSpicy[item.name] || '不辣') : '內用'})`;
-
-                setCart([...cart, { id: Date.now() + Math.random(), name: `${item.name}${size}${extra}`, price, count, detail }]);
-                setCounts({...counts, [key]: 1});
-            };
-
-            const submit = async () => {
-                setSubmitting(true);
-                const orderId = "#" + (Math.floor(Math.random()*900)+100);
-                const time = new Date().toLocaleString('zh-TW');
-                const data = {
-                    key: "yongji888", orderType, tableNum, people: peopleCount,
-                    items: cart.map(i => `${i.name}${i.detail} x ${i.count}`).join(', '),
-                    totalPrice: cart.reduce((s,i)=>s+(i.price*i.count), 0),
-                    orderId
-                };
-                setFinalInfo({ ...data, time, cart: [...cart] });
-                try { await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) }); } catch (e) {}
-                setView('done'); setSubmitting(false);
-            };
-
-            if (view === 'welcome') return (
-                <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-                    <div className="w-40 h-40 bg-red-700 rounded-full flex items-center justify-center text-white text-3xl font-black mb-12 shadow-xl">永吉<br/>涼麵</div>
-                    <button onClick={()=>{setOrderType('內用'); setView('table');
+                if (extra ===
