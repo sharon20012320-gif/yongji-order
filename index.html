@@ -101,11 +101,11 @@
                 // 🛠️ 關鍵修正：對應你的 GAS 後台變數名稱
                 const final = {
                     key: "yongji888",              
-                    orderType: orderType,          // 必須是 "內用" 或 "外帶"
-                    tableNum: table,               // 必須是桌號數字
+                    orderType: orderType,          // 後台用這個抓「內用」或「外帶」
+                    tableNum: table,               // 後台用這個抓桌號數字
                     people: people,                
                     items: cart.map(i => `${i.title}${i.note} x ${i.qty}`).join(', '),
-                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0), 
+                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0), // 注意：後台是用 totalPrice
                     orderId: orderId,
                 };
 
