@@ -97,21 +97,40 @@
             };
 
             const submitOrder = async () => {
+  const submitOrder = async () => {
                 setIsSending(true);
                 const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
-                const timeStr = new Date().toLocaleString('zh-TW');
                 
-                // 修正後台顯示問題：將 type 欄位明確化
+                // 為了對接你的後台腳本，這裡必須使用相同的 Key 名稱
                 const final = {
-                    type: orderType === '內用' ? `內用(${table}桌)` : '外帶',
-                    table: table || '外帶',
-                    people: people,
+                    key: "yongji888",              // 暗號檢查
+                    orderType: orderType,          // 後台用這個判斷「內用」或「外帶」
+                    tableNum: table,               // 後台用這個抓桌號數字
+                    people: people,                // 後台會顯示在第 3 欄
                     items: cart.map(i => `${i.title}${i.note} x ${i.qty}`).join(', '),
-                    total: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
-                    orderId, 
-                    time: timeStr, 
-                    cart: [...cart]
+                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0), // 注意：後台是用 totalPrice
+                    orderId: orderId,
                 };
+
+                setFinishData({
+                    ...final,
+                    total: final.totalPrice, // 供前端顯示使用
+                    cart: [...cart]
+                });
+
+                try {
+                    await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        body: JSON.stringify(final) 
+                    });
+                } catch(e) { 
+                    console.error("發送失敗:", e); 
+                }
+                
+                setView('finish');
+                setIsSending(false);
+            };
 
                 setFinishData(final);
                 try {
