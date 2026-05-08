@@ -214,7 +214,7 @@
                                     {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
                                         <div className="flex gap-1 flex-wrap justify-end">
                                             {['不辣','微辣','小辣','中辣','大辣'].map(s => {
-                                                const label = s === '不辣' ? s : s + '辣';
+                                                const label = s;
                                                 return (
                                                     <button 
                                                         key={s} 
