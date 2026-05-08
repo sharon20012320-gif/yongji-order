@@ -97,20 +97,21 @@
             const submitOrder = async () => {
                 setIsSending(true);
                 const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
+                const timeStr = new Date().toLocaleString('zh-TW');
                 
-                // 🛠️ 關鍵修正：對應你的 GAS 後台變數名稱
                 const final = {
                     key: "yongji888",              
-                    orderType: orderType,          // 後台用這個抓「內用」或「外帶」
-                    tableNum: table,               // 後台用這個抓桌號數字
+                    orderType: orderType,          
+                    tableNum: table,               
                     people: people,                
                     items: cart.map(i => `${i.title}${i.note} x ${i.qty}`).join(', '),
-                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0), // 注意：後台是用 totalPrice
+                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0), 
                     orderId: orderId,
                 };
 
                 setFinishData({
                     ...final,
+                    time: timeStr,
                     total: final.totalPrice, 
                     cart: [...cart]
                 });
@@ -158,12 +159,18 @@
                     <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center w-full max-w-sm border-t-8 border-orange-500">
                         <div className="text-7xl mb-6">✅</div>
                         <h2 className="text-4xl font-black text-gray-800 mb-2">訂單已送出</h2>
-                        <p className="text-orange-600 font-bold text-xl mb-6">單號：{finishData?.orderId}</p>
+                        <p className="text-orange-600 font-bold text-xl mb-1">單號：{finishData?.orderId}</p>
+                        <p className="text-gray-400 text-sm mb-6">{finishData?.time}</p>
+                        
                         <div className="text-left bg-orange-50 p-6 rounded-2xl mb-8 space-y-2">
                             {finishData?.cart.map(i => <div key={i.id} className="text-gray-600 font-bold">● {i.title} x {i.qty}</div>)}
                             <div className="border-t border-orange-200 mt-4 pt-2 text-2xl font-black text-red-600 text-right">總計：${finishData?.total}</div>
                         </div>
-                        <button onClick={()=>window.location.reload()} className="w-full py-5 bg-orange-500 text-white rounded-2xl text-2xl font-black">返回首頁</button>
+
+                        <div className="bg-red-100 text-red-700 py-6 px-4 rounded-2xl">
+                            <p className="text-2xl font-black mb-1">請至櫃檯結帳</p>
+                            <p className="text-sm font-bold opacity-80">感謝您的光臨，餐點準備中</p>
+                        </div>
                     </div>
                 </div>
             );
