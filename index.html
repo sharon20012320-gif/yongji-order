@@ -45,6 +45,24 @@
 
         const App = () => {
             const [view, setView] = useState('start');
+            const [isResting, setIsResting] = useState(false);
+
+// 營業時間檢查 (07:00 ~ 15:00)
+useEffect(() => {
+    const checkTime = () => {
+        const now = new Date();
+        const hour = now.getHours();
+        // 若小時小於 7 或 大於等於 15 則進入休息模式
+        if (hour < 7 || hour >= 15) {
+            setIsResting(true);
+        } else {
+            setIsResting(false);
+        }
+    };
+    checkTime();
+    const timer = setInterval(checkTime, 60000); // 每分鐘檢查一次
+    return () => clearInterval(timer);
+}, []);
             const [orderType, setOrderType] = useState('');
             const [table, setTable] = useState('');
             const [people, setPeople] = useState(1);
@@ -95,39 +113,41 @@
             };
 
             const submitOrder = async () => {
-                setIsSending(true);
-                const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
-                const timeStr = new Date().toLocaleString('zh-TW');
-                
-                const final = {
-                    key: "yongji888",              
-                    orderType: orderType,          
-                    tableNum: table,               
-                    people: people,                
-                    items: cart.map(i => `${i.title}${i.note} x ${i.qty}`).join(', '),
-                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0), 
-                    orderId: orderId,
-                };
+    setIsSending(true);
+    const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
+    const timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
+    
+    // 🔍 重點：彙整邏輯
+    const summaryMap = {};
+    cart.forEach(item => {
+        if (!summaryMap[item.title]) {
+            summaryMap[item.title] = { total: 0, spicies: {} };
+        }
+        summaryMap[item.title].total += item.qty;
+        // 去除備註括號，統計內容數量 (例如：不辣*1, 中辣*2)
+        const noteClean = item.note.replace(/[()]/g, '');
+        summaryMap[item.title].spicies[noteClean] = (summaryMap[item.title].spicies[noteClean] || 0) + item.qty;
+    });
 
-                setFinishData({
-                    ...final,
-                    time: timeStr,
-                    total: final.totalPrice, 
-                    cart: [...cart]
-                });
+    const displayLines = Object.keys(summaryMap).map(title => {
+        const data = summaryMap[title];
+        const spicyDetails = Object.entries(data.spicies)
+            .map(([label, count]) => `${label}*${count}`)
+            .join('、');
+        return `${title} x ${data.total} (${spicyDetails})`;
+    });
 
-                try {
-                    await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        body: JSON.stringify(final) 
-                    });
-                } catch(e) { console.error(e); }
-                
-                setView('finish');
-                setIsSending(false);
-            };
+    const final = {
+        key: "yongji888",
+        orderType, tableNum: table, people,
+        items: displayLines.join(', '), // 這裡會傳送合併後的格式到 Google 試算表
+        totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
+        orderId
+    };
 
+    setFinishData({ ...final, finishTime: timeStr, displayLines });
+    // ... 後續 fetch 與 setView ...
+};
             if (view === 'start') return (
                 <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-[#FDFBF7]">
                     <div className="w-44 h-44 bg-red-700 rounded-full flex items-center justify-center text-white text-4xl font-black mb-16 shadow-2xl text-center">永吉<br/>涼麵</div>
