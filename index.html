@@ -63,7 +63,7 @@
                 const checkTime = () => {
                     const now = new Date();
                     const hour = now.getHours();
-                    if (hour < 7 || hour >= 15) setIsResting(true);
+                    if (hour < 7 || hour >= 17) setIsResting(true);
                     else setIsResting(false);
                 };
                 checkTime();
@@ -124,7 +124,8 @@
                     orderType, tableNum: table, people,
                     items: displayLines.join(', '),
                     totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
-                    orderId
+                    orderId,
+                    utensils: utensils
                 };
 
                 setFinishData({ ...final, finishTime: timeStr, displayLines });
