@@ -2,109 +2,91 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>永吉涼麵 - 點餐系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>永記小吃部 - 線上點餐</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #FDFBF7; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-        .tab-active { border-bottom: 4px solid #E67E22; color: #E67E22; font-weight: 900; }
-        .spicy-btn-active { background-color: #C0392B !important; color: white !important; border-color: #C0392B !important; }
-        @media print { .no-print { display: none !important; } }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+        .active-tab { border-bottom: 3px solid #ef4444; color: #ef4444; font-weight: bold; }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #ef4444;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
+    <script>
         const { useState, useEffect } = React;
 
-        const MENU = {
-            "涼麵": [
-                { name: "原味涼麵", pS: 50, pL: 60 }, { name: "芥末涼麵", pS: 50, pL: 60 },
-                { name: "素食涼麵", pS: 50, pL: 60 }, { name: "雞絲涼麵", pS: 60, pL: 70 },
-                { name: "三絲涼麵", pS: 60, pL: 70 }, { name: "炸醬涼麵", pS: 60, pL: 70 },
-                { name: "泰式涼麵", pS: 65, pL: 75, fixed: "大辣" }
+        const menuData = {
+            "熱門推薦": [
+                { id: 1, title: "招牌乾麵", price: 50, note: "附清湯" },
+                { id: 2, title: "滷肉飯 (大)", price: 45, note: "肥瘦適中" }
             ],
-            "熱食": [
-                { name: "炒麵", pS: 50, pL: 60 }, { name: "魯肉飯", pS: 45, pL: 55 },
-                { name: "雞肉飯", pS: 45, pL: 55 }, { name: "味噌蛋麵", price: 65 }, { name: "炸醬麵", price: 60 }
+            "麵食類": [
+                { id: 3, title: "麻醬麵", price: 55 },
+                { id: 4, title: "陽春麵", price: 45 },
+                { id: 5, title: "餛飩麵", price: 65 }
             ],
-            "湯類": [
-                { name: "味噌", base: 25 }, { name: "紫菜", base: 25 },
-                { name: "蘿蔔", base: 30 }, { name: "蛋花", base: 30 }, { name: "貢丸", base: 40 }
-            ],
-            "小菜": [
-                { name: "魯蛋", price: 15 }, { name: "海帶", price: 10 }, { name: "小豆干", price: 10 },
-                { name: "大豆干", price: 20 }, { name: "素雞", price: 15 }, { name: "蘿蔔", price: 15 },
-                { name: "百頁", price: 20 }, { name: "麵腸", price: 20 }, { name: "素肚", price: 30 }, { name: "杏鮑菇", price: 30 }
+            "湯品/小菜": [
+                { id: 6, title: "貢丸湯", price: 30 },
+                { id: 7, title: "燙青菜", price: 40 },
+                { id: 8, title: "滷蛋", price: 15 }
             ]
         };
 
         const App = () => {
-            const [view, setView] = useState('start');
-            const [isResting, setIsResting] = useState(false);
-            const [orderType, setOrderType] = useState('');
+            const [view, setView] = useState('menu'); // menu, cart, finish
+            const [orderType, setOrderType] = useState('內用');
             const [table, setTable] = useState('');
-            const [people, setPeople] = useState(1);
-            const [tab, setTab] = useState('涼麵');
+            const [people, setPeople] = useState('1');
+            const [activeTab, setActiveTab] = useState("熱門推薦");
             const [cart, setCart] = useState([]);
-            const [gSauce, setGSauce] = useState('蒜蓉醬油');
-            const [gOnion, setGOnion] = useState('加蔥');
-            const [gSpicy, setGSpicy] = useState('不辣');
-            const [spicyPrefs, setSpicyPrefs] = useState({});
-            const [counts, setCounts] = useState({});
             const [isSending, setIsSending] = useState(false);
             const [finishData, setFinishData] = useState(null);
 
-            useEffect(() => {
-                const checkTime = () => {
-                    const now = new Date();
-                    const hour = now.getHours();
-                    if (hour < 7 || hour >= 15) setIsResting(true);
-                    else setIsResting(false);
-                };
-                checkTime();
-                const timer = setInterval(checkTime, 60000);
-                return () => clearInterval(timer);
-            }, []);
-
-            const handleAdd = (item, label = '', extra = '') => {
-                const cKey = `${item.name}-${label}-${extra}`;
-                const qty = counts[cKey] || 1;
-                let unitP = item.price || item.base || (label === '大' ? item.pL : item.pS);
-                if (extra === '加蛋') unitP = 40;
-                if (extra === '加貢丸') unitP = 45;
-                if (extra === '綜合') unitP = 60;
-
-                const currentSpicy = item.fixed || (spicyPrefs[item.name] ? (spicyPrefs[item.name].length === 1 ? spicyPrefs[item.name] + '辣' : spicyPrefs[item.name]) : '不辣');
-                const note = tab === '小菜' 
-                    ? `(${gSauce}, ${gOnion}${orderType === '外帶' ? ', ' + gSpicy : ''})`
-                    : `(${orderType === '外帶' ? currentSpicy : '內用'})`;
-
-                const title = `${item.name}${label}${extra}`;
-                setCart([...cart, { id: Date.now() + Math.random(), title, unitP, qty, note }]);
-                setCounts({...counts, [cKey]: 1});
+            const addToCart = (item, spicy) => {
+                const note = spicy ? `(${spicy})` : "(不辣)";
+                setCart([...cart, { ...item, qty: 1, unitP: item.price, note }]);
             };
 
-            // ✅ 修正：新增購物車加減功能
-            const updateCartQty = (id, delta) => {
-                setCart(prev => prev.map(item => {
-                    if (item.id === id) {
-                        const newQty = Math.max(1, item.qty + delta);
-                        return { ...item, qty: newQty };
-                    }
-                    return item;
-                }));
+            const removeFromCart = (index) => {
+                const newCart = [...cart];
+                newCart.splice(index, 1);
+                setCart(newCart);
             };
+
+            const totalAmount = cart.reduce((sum, item) => sum + (item.unitP * item.qty), 0);
 
             const submitOrder = async () => {
+                if (orderType === '內用' && !table) {
+                    alert("請輸入桌號");
+                    return;
+                }
+
+                // --- 🍴 外帶餐具詢問功能 ---
+                let utensilsChoice = "內用不需要";
+                if (orderType === '外帶') {
+                    const wantsUtensils = window.confirm("【外帶確認】請問您需要餐具嗎？\n(按「確定」為需要，按「取消」為不需要)");
+                    utensilsChoice = wantsUtensils ? "需要餐具" : "不需要餐具";
+                }
+                // --------------------------
+
                 setIsSending(true);
                 const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
                 const timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
                 
+                // 整理品項摘要
                 const summaryMap = {};
                 cart.forEach(item => {
                     if (!summaryMap[item.title]) summaryMap[item.title] = { total: 0, spicies: {} };
@@ -121,188 +103,137 @@
 
                 const final = {
                     key: "yongji888",
-                    orderType, tableNum: table, people,
+                    orderType, 
+                    tableNum: table || "外帶", 
+                    people,
+                    utensils: utensilsChoice, // ✅ 加入餐具欄位
                     items: displayLines.join(', '),
-                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
+                    totalPrice: totalAmount,
                     orderId
                 };
 
                 setFinishData({ ...final, finishTime: timeStr, displayLines });
 
                 try {
+                    // 發送到 Google Sheets (需確保腳本有接收 utensils 欄位)
                     await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
                         method: 'POST', 
                         mode: 'no-cors', 
                         body: JSON.stringify(final) 
                     });
-                } catch(e) { console.error(e); }
+                } catch(e) { console.error("發送失敗", e); }
 
                 setView('finish');
                 setIsSending(false);
+                setCart([]);
             };
 
-            if (isResting) return (
-                <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-[#FDFBF7] text-center">
-                    <div className="w-44 h-44 bg-gray-400 rounded-full flex items-center justify-center text-white text-4xl font-black mb-8 shadow-2xl">永吉<br/>涼麵</div>
-                    <h2 className="text-4xl font-black text-gray-700 mb-4">休息中</h2>
-                    <div className="bg-white p-6 rounded-3xl shadow-lg border-2 border-orange-200">
-                        <p className="text-xl font-bold text-orange-600 mb-2">營業時間：二~日</p>
-                        <p className="text-3xl font-black text-gray-800">07:00 ~ 15:00</p>
-                    </div>
-                </div>
-            );
-
-            if (view === 'start') return (
-                <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-[#FDFBF7]">
-                    <div className="w-44 h-44 bg-red-700 rounded-full flex items-center justify-center text-white text-4xl font-black mb-16 shadow-2xl text-center">永吉<br/>涼麵</div>
-                    <div className="w-full max-w-xs space-y-6">
-                        <button onClick={()=>{setOrderType('內用'); setView('setup');}} className="w-full py-12 bg-white border-4 border-orange-500 text-orange-600 rounded-[2rem] text-5xl font-black shadow-lg">內用</button>
-                        <button onClick={()=>{setOrderType('外帶'); setView('menu'); setTable('');}} className="w-full py-12 bg-orange-500 text-white rounded-[2rem] text-5xl font-black shadow-lg">外帶</button>
-                    </div>
-                </div>
-            );
-
-            if (view === 'setup') return (
-                <div className="flex flex-col items-center justify-center min-h-screen p-6">
-                    <div className="bg-white p-8 rounded-[2.5rem] shadow-xl w-full max-sm border border-orange-100">
-                        <h2 className="text-3xl font-black mb-8 text-center text-orange-800">用餐資訊</h2>
-                        <label className="block mb-2 font-bold text-lg text-center">用餐人數：</label>
-                        <input type="number" value={people} onChange={(e)=>setPeople(e.target.value)} className="w-full p-5 border-2 border-orange-500 rounded-2xl text-center text-3xl mb-10" />
-                        <label className="block mb-4 font-bold text-lg text-center">選擇桌號：</label>
-                        <div className="grid grid-cols-4 gap-3">
-                            {[1,2,3,5,6,7,8,9,10,11].map(n => (
-                                <button key={n} onClick={()=>{setTable(n); setView('menu');}} className={`py-5 rounded-2xl text-2xl font-black border-2 ${table === n ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-50 border-orange-200 text-orange-700'}`}>{n}</button>
-                            ))}
+            if (view === 'finish') {
+                return (
+                    <div className="min-h-screen bg-white p-6 flex flex-col items-center justify-center text-center">
+                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+                            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                         </div>
-                    </div>
-                </div>
-            );
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">訂單已送達廚房</h2>
+                        <p className="text-gray-500 mb-6">您的編號：<span className="text-red-600 font-bold text-xl">{finishData.orderId}</span></p>
+                        
+                        <div className="w-full max-w-sm bg-gray-50 rounded-lg p-4 text-left mb-6 text-sm">
+                            <p><strong>時間：</strong> {finishData.finishTime}</p>
+                            <p><strong>類型：</strong> {finishData.orderType} {finishData.orderType === '內用' ? `(${finishData.tableNum}桌)` : ''}</p>
+                            <p><strong>餐具：</strong> {finishData.utensils}</p>
+                            <hr className="my-2"/>
+                            {finishData.displayLines.map((line, i) => <p key={i}>{line}</p>)}
+                            <p className="mt-2 text-right font-bold text-lg text-red-600">總計：${finishData.totalPrice}</p>
+                        </div>
 
-            if (view === 'finish') return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6">
-        <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center w-full max-w-sm border-t-8 border-orange-500">
-            <div className="text-7xl mb-6">✅</div>
-            <h2 className="text-4xl font-black text-gray-800 mb-2">訂單已送出</h2>
-            
-            {/* 這裡新增了流水號提示 */}
-            <p className="text-orange-600 font-bold text-2xl mb-1">單號：{finishData?.orderId}</p>
-            <p className="text-gray-400 font-bold text-sm mb-4">此號為流水號，與順序無關</p>
-            
-            <p className="text-gray-400 text-xs mb-6 italic">送出時間：{finishData?.finishTime}</p>
-            
-            <div className="text-left bg-orange-50 p-6 rounded-2xl mb-8 space-y-2">
-                {finishData?.displayLines.map((line, idx) => (
-                    <div key={idx} className="text-gray-600 font-bold">● {line}</div>
-                ))}
-                <div className="border-t border-orange-200 mt-4 pt-2 text-2xl font-black text-red-600 text-right">總計：${finishData?.totalPrice}</div>
-            </div>
-            
-            <div className="bg-red-600 text-white py-6 px-4 rounded-2xl shadow-lg">
-                <p className="text-2xl font-black mb-1">請至櫃檯結帳</p>
-            </div>
-        </div>
-    </div>
-);
+                        <button onClick={() => setView('menu')} className="w-full max-w-sm bg-red-500 text-white py-3 rounded-xl font-bold">返回首頁</button>
+                    </div>
+                );
+            }
 
             return (
-                <div className="max-w-4xl mx-auto pb-44">
-                    <header className="bg-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center no-print text-red-700">
-                        <h1 className="text-3xl font-black italic">永吉涼麵</h1>
-                        <span className="bg-orange-600 text-white px-4 py-1 rounded-full font-bold text-sm">{orderType} {table && `${table}桌`}</span>
-                    </header>
-                    <nav className="flex bg-white sticky top-[72px] z-40 border-b no-print shadow-sm overflow-x-auto">
-                        {Object.keys(MENU).map(k => (
-                            <button key={k} onClick={()=>setTab(k)} className={`flex-1 py-5 text-2xl min-w-[100px] ${tab === k ? 'tab-active' : 'text-gray-400 font-bold'}`}>{k}</button>
-                        ))}
-                    </nav>
-                    <main className="p-4 space-y-6 no-print">
-                        {tab === '小菜' && (
-                            <div className="bg-orange-600 p-6 rounded-[2rem] text-white shadow-xl space-y-4 border-4 border-orange-400">
-                                <h3 className="font-black text-xl text-center">🥗 小菜口味調整</h3>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {['蒜蓉醬油','素醬油','不加醬'].map(s => <button key={s} onClick={()=>setGSauce(s)} className={`py-3 rounded-xl text-sm font-bold border-2 ${gSauce===s?'bg-white text-orange-600 border-white':'border-orange-400'}`}>{s}</button>)}
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {['加蔥','不加蔥'].map(o => <button key={o} onClick={()=>setGOnion(o)} className={`py-3 rounded-xl text-sm font-bold border-2 ${gOnion===o?'bg-white text-orange-600 border-white':'border-orange-400'}`}>{o}</button>)}
-                                </div>
-                                {orderType === '外帶' && (
-                                    <div className="flex gap-2 overflow-x-auto pb-2">
-                                        {['不辣','微辣','小辣','中辣','大辣'].map(s => <button key={s} onClick={()=>setGSpicy(s)} className={`px-4 py-3 rounded-xl text-xs font-bold border-2 whitespace-nowrap ${gSpicy===s?'bg-red-500 text-white border-white':'border-orange-400'}`}>{s}</button>)}
-                                    </div>
-                                )}
+                <div className="max-w-md mx-auto min-h-screen pb-24">
+                    {/* Header */}
+                    <header className="bg-white p-4 sticky top-0 z-10 shadow-sm">
+                        <h1 className="text-xl font-bold text-gray-800">永記小吃部</h1>
+                        <div className="flex gap-4 mt-3">
+                            <button onClick={() => setOrderType('內用')} className={`px-4 py-1 rounded-full text-sm ${orderType === '內用' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'}`}>內用</button>
+                            <button onClick={() => setOrderType('外帶')} className={`px-4 py-1 rounded-full text-sm ${orderType === '外帶' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'}`}>外帶</button>
+                        </div>
+                        {orderType === '內用' && (
+                            <div className="flex gap-2 mt-3">
+                                <input type="number" placeholder="桌號" className="w-1/2 border p-2 rounded-lg text-sm" value={table} onChange={e => setTable(e.target.value)} />
+                                <select className="w-1/2 border p-2 rounded-lg text-sm" value={people} onChange={e => setPeople(e.target.value)}>
+                                    {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} 人</option>)}
+                                </select>
                             </div>
                         )}
-                        {MENU[tab].map(item => (
-                            <div key={item.name} className="bg-white p-6 rounded-[2rem] shadow-md border border-orange-50">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-3xl font-black text-gray-800">{item.name}</h3>
-                                    {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
-                                        <div className="flex gap-1 flex-wrap justify-end">
-                                            {['不辣','微辣','小辣','中辣','大辣'].map(s => (
-                                                <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-600 border-gray-200 font-black'}`}>{s}</button>
-                                            ))}
-                                        </div>
-                                    )}
+                    </header>
+
+                    {/* Tabs */}
+                    <div className="flex overflow-x-auto bg-white border-b sticky top-[116px] z-10">
+                        {Object.keys(menuData).map(tab => (
+                            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-3 whitespace-nowrap text-sm ${activeTab === tab ? 'active-tab' : 'text-gray-500'}`}>{tab}</button>
+                        ))}
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="p-4 space-y-4">
+                        {menuData[activeTab].map(item => (
+                            <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center">
+                                <div>
+                                    <h3 className="font-bold text-gray-800">{item.title}</h3>
+                                    <p className="text-red-500 font-bold mt-1">${item.price}</p>
+                                    {item.note && <p className="text-xs text-gray-400 mt-1">{item.note}</p>}
                                 </div>
-                                <div className="space-y-3">
-                                    {(item.pS ? ['小','大'] : item.base ? ['單點','加蛋','加貢丸','綜合'] : ['']).map(lbl => {
-                                        if (lbl==='綜合' && (item.name==='蛋花'||item.name==='貢丸')) return null;
-                                        const key = `${item.name}-${lbl}-${(lbl==='加蛋'||lbl==='加貢丸'||lbl==='綜合')?lbl:''}`;
-                                        const p = lbl==='大'?item.pL:lbl==='小'?item.pS:lbl==='加蛋'?40:lbl==='加貢丸'?45:lbl==='綜合'?60:(item.price||item.base);
-                                        return (
-                                            <div key={lbl} className="bg-gray-50 p-4 rounded-3xl flex items-center justify-between shadow-inner">
-                                                <span className="text-xl font-black">{lbl} <span className="text-red-600 ml-1">${p}</span></span>
-                                                <div className="flex items-center gap-4">
-                                                    <div className="flex items-center bg-white rounded-full border-2 border-orange-200 px-3">
-                                                        <button onClick={()=>setCounts({...counts, [key]: Math.max(1, (counts[key]||1)-1)})} className="w-10 h-10 text-3xl font-black text-orange-500">-</button>
-                                                        <span className="w-8 text-center text-xl font-black">{counts[key] || 1}</span>
-                                                        <button onClick={()=>setCounts({...counts, [key]: (counts[key]||1)+1})} className="w-10 h-10 text-3xl font-black text-orange-500">+</button>
-                                                    </div>
-                                                    <button onClick={()=>handleAdd(item, lbl, (lbl==='加蛋'||lbl==='加貢丸'||lbl==='綜合')?lbl:'')} className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-black active:scale-90 transition-transform">加入</button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                <div className="flex flex-col gap-2">
+                                    <button onClick={() => addToCart(item, "不辣")} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-xs font-bold">+ 不辣</button>
+                                    <button onClick={() => addToCart(item, "加辣")} className="bg-red-50 text-red-600 px-3 py-1 rounded-lg text-xs font-bold">+ 加辣</button>
                                 </div>
                             </div>
                         ))}
-                    </main>
-                    {cart.length > 0 && view !== 'finish' && (
-                        <div className="fixed bottom-8 left-6 right-6 no-print z-50">
-                            <button onClick={()=>setView('cart')} className="w-full bg-red-700 text-white p-6 rounded-[2.5rem] shadow-2xl flex justify-between items-center px-10 active:scale-95 transition-transform border-4 border-red-800">
-                                <span className="text-3xl font-black">結帳清單 (${cart.reduce((s,i)=>s+(i.unitP*i.qty), 0)})</span>
-                                <span className="bg-white text-red-700 w-12 h-12 rounded-full flex items-center justify-center font-black text-xl shadow-inner">{cart.reduce((s,i)=>s+i.qty, 0)}</span>
-                            </button>
+                    </div>
+
+                    {/* Footer / Cart Bar */}
+                    {cart.length > 0 && view === 'menu' && (
+                        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t p-4 flex justify-between items-center shadow-lg">
+                            <div onClick={() => setView('cart')} className="cursor-pointer">
+                                <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs mr-2">{cart.length}</span>
+                                <span className="font-bold text-gray-700">總計 ${totalAmount}</span>
+                            </div>
+                            <button onClick={() => setView('cart')} className="bg-red-500 text-white px-8 py-2 rounded-xl font-bold">查看購物車</button>
                         </div>
                     )}
+
+                    {/* Cart View Overlay */}
                     {view === 'cart' && (
-                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-end no-print">
-                            <div className="bg-white w-full max-h-[85vh] rounded-t-[3.5rem] p-8 overflow-y-auto shadow-2xl">
-                                <div className="flex justify-between items-center mb-8 border-b pb-4">
-                                    <h2 className="text-3xl font-black text-gray-800">核對餐點</h2>
-                                    <button onClick={()=>setView('menu')} className="text-6xl text-gray-300">&times;</button>
+                        <div className="fixed inset-0 z-50 bg-gray-900 bg-opacity-50 flex flex-col justify-end">
+                            <div className="bg-white rounded-t-3xl max-h-[80vh] overflow-y-auto p-6">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-xl font-bold">確認訂單</h2>
+                                    <button onClick={() => setView('menu')} className="text-gray-400 text-2xl">&times;</button>
                                 </div>
-                                <div className="space-y-4 mb-10">
-                                    {cart.map(i => (
-                                        <div key={i.id} className="bg-gray-50 p-5 rounded-3xl border border-gray-100 shadow-sm flex justify-between items-center">
-                                            <div className="flex-1">
-                                                <div className="text-xl font-black text-gray-700">{i.title}</div>
-                                                <div className="text-sm text-gray-400 font-bold">{i.note}</div>
-                                                <span className="text-2xl font-black text-red-600">${i.unitP * i.qty}</span>
+                                <div className="space-y-4 mb-6">
+                                    {cart.map((item, idx) => (
+                                        <div key={idx} className="flex justify-between items-center border-b pb-3">
+                                            <div>
+                                                <p className="font-medium">{item.title} <span className="text-gray-400 text-sm">{item.note}</span></p>
+                                                <p className="text-red-500 font-bold">${item.unitP}</p>
                                             </div>
-                                            <div className="flex items-center gap-4">
-                                                <div className="flex items-center bg-white rounded-full border-2 border-orange-200 px-2">
-                                                    <button onClick={()=>updateCartQty(i.id, -1)} className="w-8 h-8 text-2xl font-black text-orange-500">-</button>
-                                                    <span className="w-8 text-center font-black">{i.qty}</span>
-                                                    <button onClick={()=>updateCartQty(i.id, 1)} className="w-8 h-8 text-2xl font-black text-orange-500">+</button>
-                                                </div>
-                                                <button onClick={()=>setCart(cart.filter(c=>c.id!==i.id))} className="text-3xl">❌️</button>
-                                            </div>
+                                            <button onClick={() => removeFromCart(idx)} className="text-gray-300 border px-2 py-1 rounded">刪除</button>
                                         </div>
                                     ))}
                                 </div>
-                                <button onClick={submitOrder} disabled={isSending} className="w-full py-8 rounded-[2rem] text-4xl font-black text-white bg-orange-600 shadow-xl active:scale-95 transition-transform border-b-8 border-orange-800">
-                                    {isSending ? '訂單送出中...' : '送出訂單'}
+                                <div className="flex justify-between items-center mb-6">
+                                    <span className="text-gray-500">總金額</span>
+                                    <span className="text-2xl font-bold text-red-600">${totalAmount}</span>
+                                </div>
+                                <button 
+                                    onClick={submitOrder} 
+                                    disabled={isSending}
+                                    className={`w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center ${isSending ? 'bg-gray-400' : 'bg-red-500'}`}
+                                >
+                                    {isSending ? <div className="loading-spinner"></div> : "確認送出訂單"}
                                 </button>
                             </div>
                         </div>
