@@ -58,6 +58,8 @@
             const [counts, setCounts] = useState({});
             const [isSending, setIsSending] = useState(false);
             const [finishData, setFinishData] = useState(null);
+            const [showUtensilsModal, setShowUtensilsModal] = useState(false);
+            const [utensils, setUtensils] = useState(''); // 儲存 '需要餐具' 或 '不需要'
 
             useEffect(() => {
                 const checkTime = () => {
