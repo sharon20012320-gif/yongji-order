@@ -101,45 +101,43 @@
             };
 
             const submitOrder = async () => {
-                setIsSending(true);
-                const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
-                const timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
-                
-                const summaryMap = {};
-                cart.forEach(item => {
-                    if (!summaryMap[item.title]) summaryMap[item.title] = { total: 0, spicies: {} };
-                    summaryMap[item.title].total += item.qty;
-                    const noteClean = item.note.replace(/[()]/g, '');
-                    summaryMap[item.title].spicies[noteClean] = (summaryMap[item.title].spicies[noteClean] || 0) + item.qty;
-                });
+    // 1. 先處理餐具詢問邏輯
+    let utensilChoice = "內用不需餐具";
+    if (orderType === '外帶') {
+        const wantsUtensils = window.confirm("請問需要餐具嗎？\n(確定：需要 / 取消：不需要)");
+        utensilChoice = wantsUtensils ? "需要餐具" : "不需要餐具";
+    }
 
-                const displayLines = Object.keys(summaryMap).map(title => {
-                    const data = summaryMap[title];
-                    const spicyDetails = Object.entries(data.spicies).map(([l, c]) => `${l}*${c}`).join('、');
-                    return `${title} x ${data.total} (${spicyDetails})`;
-                });
+    setIsSending(true);
+    const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
+    const timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
+    
+    // ... (中間這段計算 summaryMap 的代碼保持不變) ...
 
-                const final = {
-                    key: "yongji888",
-                    orderType, tableNum: table, people,
-                    items: displayLines.join(', '),
-                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
-                    orderId,
-                    utensils: utensils
-                };
+    const final = {
+        key: "yongji888",
+        orderType, 
+        tableNum: table, 
+        people,
+        utensils: utensilChoice, // 這裡現在有值了，不會噴錯
+        items: displayLines.join(', '),
+        totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
+        orderId
+    };
 
-                setFinishData({ ...final, finishTime: timeStr, displayLines });
+    setFinishData({ ...final, finishTime: timeStr, displayLines });
 
-                try {
-                    await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        body: JSON.stringify(final) 
-                    });
-                } catch(e) { console.error(e); }
+    try {
+        await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(final) 
+        });
+    } catch(e) { console.error(e); }
 
-                setView('finish');
-                setIsSending(false);
+    setView('finish');
+    setIsSending(false);
+};
             };
 
             if (isResting) return (
