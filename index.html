@@ -58,8 +58,6 @@
             const [counts, setCounts] = useState({});
             const [isSending, setIsSending] = useState(false);
             const [finishData, setFinishData] = useState(null);
-            const [showUtensilsModal, setShowUtensilsModal] = useState(false);
-            const [utensils, setUtensils] = useState(''); // 儲存 '需要餐具' 或 '不需要'
 
             useEffect(() => {
                 const checkTime = () => {
@@ -106,7 +104,7 @@
                 setIsSending(true);
                 const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
                 const timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
-          
+                
                 const summaryMap = {};
                 cart.forEach(item => {
                     if (!summaryMap[item.title]) summaryMap[item.title] = { total: 0, spicies: {} };
@@ -123,8 +121,7 @@
 
                 const final = {
                     key: "yongji888",
-                    orderType, tableNum: table, people, 
-                    utensils: utensils
+                    orderType, tableNum: table, people,
                     items: displayLines.join(', '),
                     totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
                     orderId
