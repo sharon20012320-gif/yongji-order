@@ -125,7 +125,7 @@
                     key: "yongji888",
                     orderType: orderType,
                     tableNum: table, 
-                    people: orderType === '內用' ? Number(people) : 0,
+                    people: orderType === '內用' ? parseInt(people, 10) : 0,
                     items: displayLines.join(', ') + (orderType === '外帶' ? (needUtensils ? " | 【需要餐具】" : " | 【不需餐具】") : ""),
                     totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
                     orderId: orderId
