@@ -121,6 +121,7 @@
 
                 const utensilNote = orderType === '外帶' ? (needUtensils ? "【需要餐具】" : "【不需餐具】") : "";
 
+                // 核心修復點：確保屬性間有逗號，且 people 強制轉為 Number
                 const final = {
                     key: "yongji888",
                     orderType: orderType,
@@ -165,6 +166,7 @@
                     </div>
                 </div>
             );
+
             if (view === 'setup') return (
                 <div className="flex flex-col items-center justify-center min-h-screen p-6">
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-xl w-full max-w-md border border-orange-100">
