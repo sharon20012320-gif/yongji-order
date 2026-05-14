@@ -120,25 +120,28 @@
                 });
 
                 const utensilNote = orderType === '外帶' ? (needUtensils ? "【需要餐具】" : "【不需餐具】") : "";
+                const itemsString = displayLines.join(', ') + (orderType === '外帶' ? (needUtensils ? " | 【需要餐具】" : " | 【不需餐具】") : "");
+                const totalP = cart.reduce((s, i) => s + (i.unitP * i.qty), 0);
 
-                // 核心修復點：確保屬性間有逗號，且 people 強制轉為 Number
-                const final = {
-                    key: "yongji888",
-                    orderType: orderType,
-                    tableNum: table, 
-                    people: orderType === '內用' ? Number(people) : 0,
-                    items: displayLines.join(', ') + (orderType === '外帶' ? (needUtensils ? " | 【需要餐具】" : " | 【不需餐具】") : ""),
-                    totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
-                    orderId: orderId
-                };
+                setFinishData({ orderId, finishTime: timeStr, displayLines, utensilNote, totalPrice: totalP });
 
-                setFinishData({ ...final, finishTime: timeStr, displayLines, utensilNote });
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec';
 
+                // ✅ 修正：改用 POST + JSON body，Content-Type 用 text/plain 避免 no-cors 被擋
                 try {
-                    await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        body: JSON.stringify(final) 
+                    await fetch(scriptUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            key: "yongji888",
+                            orderType: orderType,
+                            tableNum: table,
+                            people: orderType === '內用' ? Number(people) : 0,
+                            items: itemsString,
+                            totalPrice: totalP,
+                            orderId: orderId
+                        })
                     });
                 } catch(e) { console.error(e); }
 
