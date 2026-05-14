@@ -125,7 +125,7 @@
                         key: "yongji888",
                         orderType: orderType, // 內用或外帶
                         tableNum: table,      // 桌號
-                        people: people,       // <-- 檢查有沒有補上這一行，這對應 Google Sheet 的人數欄位
+                        people: Number(people),       // <-- 檢查有沒有補上這一行，這對應 Google Sheet 的人數欄位
                         items: displayLines.join(', ') + (orderType === '外帶' ? (needUtensils ? " | 【需要餐具】" : " | 【不需餐具】") : ""),
                         totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
                         orderId: orderId
