@@ -286,7 +286,7 @@
                                 </div>
                                 {orderType === '外帶' && (
                                     <div className="mb-8 p-4 bg-orange-50 rounded-3xl border-2 border-orange-200">
-                                        <p className="text-center font-black text-orange-800 mb-3 text-xl">需要外帶餐具嗎？</p>
+                                        <p className="text-center font-black text-orange-800 mb-3 text-2xl">要餐具嗎？</p>
                                         <div className="grid grid-cols-2 gap-4">
                                             {/* ✅ 順序對調：左邊不需要、右邊需要 */}
                                             {/* ✅ 顏色調整：選中時 text-black */}
@@ -297,7 +297,7 @@
                                             <button 
                                                 onClick={() => setNeedUtensils(true)} 
                                                 className={`py-4 rounded-2xl font-black text-xl border-4 transition-all ${needUtensils ? 'bg-orange-500 text-black border-orange-600 shadow-inner' : 'bg-white text-orange-300 border-gray-100'}`}
-                                            >🥢 需要</button>
+                                            >⭕ 需要</button>
                                         </div>
                                     </div>
                                 )}
