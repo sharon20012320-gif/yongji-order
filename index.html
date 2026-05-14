@@ -238,34 +238,41 @@
                         )}
                         {MENU[tab].map(item => (
                             <div key={item.name} className="bg-white p-6 rounded-[2rem] shadow-md border border-orange-50">
-                                <div className="flex justify-between items-center mb-4">
+                               {/* 找到原有的這段並替換 */}
+                                {/* 找到原有的這段並替換 */}
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-3xl font-black text-gray-800">{item.name}</h3>
+                                {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
+                                    <div className="flex gap-1 flex-wrap justify-end">
+                                        {['不辣','微辣','小辣','中辣','大辣'].map(s => (
+                                            <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-600 border-gray-200 font-black'}`}>{s}</button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* --- 建議修改為下方這個結構 --- */}
+                            
+                            <div className="flex flex-col mb-4"> {/* 改成 flex-col 垂直排列 */}
+                                <div className="flex justify-between items-center mb-2">
                                     <h3 className="text-3xl font-black text-gray-800">{item.name}</h3>
-                                    {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
-                                        <div className="flex gap-1 flex-wrap justify-end">
-                                            {['不辣','微辣','小辣','中辣','大辣'].map(s => (
-                                                <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-600 border-gray-200 font-black'}`}>{s}</button>
-                                            ))}
-                                        </div>
-                                    )}
+                                    {/* 右邊可以放個小標籤或是維持空白，確保菜名有完整空間 */}
                                 </div>
-                                <div className="space-y-3">
-                                    {(item.pS ? ['小','大'] : item.base ? ['單點','加蛋','加貢丸','綜合'] : ['']).map(lbl => {
-                                        if (lbl==='綜合' && (item.name==='蛋花'||item.name==='貢丸')) return null;
-                                        const key = `${item.name}-${lbl}-${(lbl==='加蛋'||lbl==='加貢丸'||lbl==='綜合')?lbl:''}`;
-                                        const p = lbl==='大'?item.pL:lbl==='小'?item.pS:lbl==='加蛋'?40:lbl==='加貢丸'?45:lbl==='綜合'?60:(item.price||item.base);
-                                        return (
-                                            <div key={lbl} className="bg-gray-50 p-4 rounded-3xl flex items-center justify-between shadow-inner">
-                                                <span className="text-xl font-black">{lbl} <span className="text-red-600 ml-1">${p}</span></span>
-                                                <div className="flex items-center gap-4">
-                                                    <div className="flex items-center bg-white rounded-full border-2 border-orange-200 px-3">
-                                                        <button onClick={()=>setCounts({...counts, [key]: Math.max(1, (counts[key]||1)-1)})} className="w-10 h-10 text-3xl font-black text-orange-500">-</button>
-                                                        <span className="w-8 text-center text-xl font-black">{counts[key] || 1}</span>
-                                                        <button onClick={()=>setCounts({...counts, [key]: (counts[key]||1)+1})} className="w-10 h-10 text-3xl font-black text-orange-500">+</button>
-                                                    </div>
-                                                    <button onClick={()=>handleAdd(item, lbl, (lbl==='加蛋'||lbl==='加貢丸'||lbl==='綜合')?lbl:'')} className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-black active:scale-90 transition-transform">加入</button>
-                                                </div>
-                                            </div>
-                                        );
+                                
+                                {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
+                                    <div className="flex gap-1 flex-wrap"> {/* 讓辣度按鈕在菜名下方靠左對齊 */}
+                                        {['不辣','微辣','小辣','中辣','大辣'].map(s => (
+                                            <button 
+                                                key={s} 
+                                                onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} 
+                                                className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-600 border-gray-200 font-black'}`}
+                                            >
+                                                {s}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                                     })}
                                 </div>
                             </div>
