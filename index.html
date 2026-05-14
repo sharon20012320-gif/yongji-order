@@ -129,7 +129,7 @@
                     orderId
                 };
 
-                setFinishData({ ...final, finishTime: timeStr, displayLines, utensilNote, peopleCount: people });
+                setFinishData({ ...final, finishTime: timeStr, displayLines, utensilNote });
 
                 try {
                     await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
