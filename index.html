@@ -64,7 +64,7 @@
                 const checkTime = () => {
                     const now = new Date();
                     const hour = now.getHours();
-                    if (hour < 7 || hour >= 15) setIsResting(true);
+                    if (hour < 7 || hour >= 24) setIsResting(true);
                     else setIsResting(false);
                 };
                 checkTime();
