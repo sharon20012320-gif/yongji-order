@@ -132,20 +132,23 @@
                     orderId: orderId
                 };
 
-                setFinishData({ ...final, finishTime: timeStr, displayLines, utensilNote });
-
-                try {
-                    await fetch('https://script.google.com/macros/s/AKfycby4QS3nhpwUZYMFJBY5REXflTuzat3IPX6m2qKkOurpijIS1gQWpsxG3lFk9CUtQM62/exec', { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        body: JSON.stringify(final) 
-                    });
-                } catch(e) { console.error(e); }
-
-                setView('finish');
-                setIsSending(false);
-            };
-
+                 const formData = new URLSearchParams();
+                    Object.keys(final).forEach(key => formData.append(key, final[key]));
+            
+                    try {
+                        await fetch('您的部署網址', { 
+                            method: 'POST', 
+                            mode: 'no-cors', 
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: formData.toString() 
+                        });
+                    } catch(e) { console.error(e); }
+                    // ------------------------
+                
+                    setView('finish');
+                    setIsSending(false);
+                };
+            
             if (isResting) return (
                 <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-[#FDFBF7] text-center">
                     <div className="w-44 h-44 bg-gray-400 rounded-full flex items-center justify-center text-white text-4xl font-black mb-8 shadow-2xl">永吉<br/>涼麵</div>
