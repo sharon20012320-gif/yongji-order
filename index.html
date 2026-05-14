@@ -103,7 +103,7 @@
             const submitOrder = async () => {
                 setIsSending(true);
                 const orderId = "#" + (Math.floor(Math.random() * 899) + 100);
-                const timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
+                const timeStr = new Date().toLocaleString('zh-TW', { hour12: true });
 
                 const summaryMap = {};
                 cart.forEach(item => {
