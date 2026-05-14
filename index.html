@@ -19,7 +19,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-     const { useState, useEffect } = React;
+        const { useState, useEffect } = React;
 
         const MENU = {
             "涼麵": [
@@ -58,8 +58,6 @@
             const [counts, setCounts] = useState({});
             const [isSending, setIsSending] = useState(false);
             const [finishData, setFinishData] = useState(null);
-            
-            // ✅ 調整：預設為不需要餐具 (false)
             const [needUtensils, setNeedUtensils] = useState(false);
 
             useEffect(() => {
@@ -185,16 +183,16 @@
             if (view === 'finish') return (
                 <div className="flex flex-col items-center justify-center min-h-screen p-6">
                     <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center w-full max-w-sm border-t-8 border-orange-500">
-                        <div className="text-7xl mb-6">✅</div> 
-                        <p className="text-orange-600 font-bold text-4xl mb-1">單號：{finishData?.orderId}</p>
-                        <p className="text-gray-400 font-bold text-sm mb-4">此號為流水號，與順序無關</p>
-                        <h2 className="text-2xl font-black text-gray-800 mb-2">訂單已送出！</h2>
-                        <p className="text-2xl text-gray-400 font-bold mb-4">餐點準備中...感謝您耐心等候</p>
+                        <div className="text-7xl mb-6">✅</div>
+                        <h2 className="text-4xl font-black text-gray-800 mb-2">訂單已送出</h2>
+                        <p className="text-2xl font-bold text-orange-500 mb-6 italic underline decoration-orange-200 underline-offset-8">謝謝您的惠顧</p>
+                        
+                        <p className="text-orange-600 font-bold text-3xl mb-1">單號：{finishData?.orderId}</p>
                         {finishData?.utensilNote && (
                             <p className="text-red-600 font-black text-xl mb-4 underline decoration-2">{finishData.utensilNote}</p>
                         )}
+                        <p className="text-gray-400 font-bold text-sm mb-4">此號為流水號，與順序無關</p>
                         <p className="text-gray-400 text-xs mb-6 italic">送出時間：{finishData?.finishTime}</p>
-                        <p className="text-2xl font-bold text-gray-800 mb-4">謝謝惠顧</p>
                         <div className="text-left bg-orange-50 p-6 rounded-2xl mb-8 space-y-2">
                             {finishData?.displayLines.map((line, idx) => (
                                 <div key={idx} className="text-gray-600 font-bold">● {line}</div>
@@ -202,7 +200,7 @@
                             <div className="border-t border-orange-200 mt-4 pt-2 text-2xl font-black text-red-600 text-right">總計：${finishData?.totalPrice}</div>
                         </div>
                         <div className="bg-red-600 text-white py-6 px-4 rounded-2xl shadow-lg">
-                            <p className="text-2xl font-black mb-1">請至櫃檯結帳，謝謝</p>
+                            <p className="text-2xl font-black mb-1">請至櫃檯結帳</p>
                         </div>
                     </div>
                 </div>
@@ -238,41 +236,34 @@
                         )}
                         {MENU[tab].map(item => (
                             <div key={item.name} className="bg-white p-6 rounded-[2rem] shadow-md border border-orange-50">
-                               {/* 找到原有的這段並替換 */}
-                                {/* 找到原有的這段並替換 */}
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-3xl font-black text-gray-800">{item.name}</h3>
-                                {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
-                                    <div className="flex gap-1 flex-wrap justify-end">
-                                        {['不辣','微辣','小辣','中辣','大辣'].map(s => (
-                                            <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-600 border-gray-200 font-black'}`}>{s}</button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            
-                            {/* --- 建議修改為下方這個結構 --- */}
-                            
-                            <div className="flex flex-col mb-4"> {/* 改成 flex-col 垂直排列 */}
-                                <div className="flex justify-between items-center mb-2">
-                                    <h3 className="text-3xl font-black text-gray-800">{item.name}</h3>
-                                    {/* 右邊可以放個小標籤或是維持空白，確保菜名有完整空間 */}
+                                <div className="flex flex-col mb-4">
+                                    <h3 className="text-3xl font-black text-gray-800 mb-2">{item.name}</h3>
+                                    {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
+                                        <div className="flex gap-1 flex-wrap">
+                                            {['不辣','微辣','小辣','中辣','大辣'].map(s => (
+                                                <button key={s} onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-600 border-gray-200 font-black'}`}>{s}</button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                                
-                                {orderType === '外帶' && (tab==='涼麵'||tab==='熱食') && !item.fixed && (
-                                    <div className="flex gap-1 flex-wrap"> {/* 讓辣度按鈕在菜名下方靠左對齊 */}
-                                        {['不辣','微辣','小辣','中辣','大辣'].map(s => (
-                                            <button 
-                                                key={s} 
-                                                onClick={()=>setSpicyPrefs({...spicyPrefs, [item.name]: s})} 
-                                                className={`px-3 py-2 rounded-xl border-2 font-bold text-xs transition-all ${(spicyPrefs[item.name]||'不辣')===s?'spicy-btn-active':'text-gray-600 border-gray-200 font-black'}`}
-                                            >
-                                                {s}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                                <div className="space-y-3">
+                                    {(item.pS ? ['小','大'] : item.base ? ['單點','加蛋','加貢丸','綜合'] : ['']).map(lbl => {
+                                        if (lbl==='綜合' && (item.name==='蛋花'||item.name==='貢丸')) return null;
+                                        const key = `${item.name}-${lbl}-${(lbl==='加蛋'||lbl==='加貢丸'||lbl==='綜合')?lbl:''}`;
+                                        const p = lbl==='大'?item.pL:lbl==='小'?item.pS:lbl==='加蛋'?40:lbl==='加貢丸'?45:lbl==='綜合'?60:(item.price||item.base);
+                                        return (
+                                            <div key={lbl} className="bg-gray-50 p-4 rounded-3xl flex items-center justify-between shadow-inner">
+                                                <span className="text-xl font-black">{lbl} <span className="text-red-600 ml-1">${p}</span></span>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center bg-white rounded-full border-2 border-orange-200 px-3">
+                                                        <button onClick={()=>setCounts({...counts, [key]: Math.max(1, (counts[key]||1)-1)})} className="w-10 h-10 text-3xl font-black text-orange-500">-</button>
+                                                        <span className="w-8 text-center text-xl font-black">{counts[key] || 1}</span>
+                                                        <button onClick={()=>setCounts({...counts, [key]: (counts[key]||1)+1})} className="w-10 h-10 text-3xl font-black text-orange-500">+</button>
+                                                    </div>
+                                                    <button onClick={()=>handleAdd(item, lbl, (lbl==='加蛋'||lbl==='加貢丸'||lbl==='綜合')?lbl:'')} className="bg-orange-500 text-white px-8 py-3 rounded-2xl font-black active:scale-90 transition-transform">加入</button>
+                                                </div>
+                                            </div>
+                                        );
                                     })}
                                 </div>
                             </div>
@@ -294,19 +285,17 @@
                                     <button onClick={()=>setView('menu')} className="text-6xl text-gray-300">&times;</button>
                                 </div>
                                 {orderType === '外帶' && (
-                                    <div className="mb-8 p-4 bg-orange-50 rounded-3xl border-2 border-orange-200">
-                                        <p className="text-center font-black text-orange-800 mb-3 text-2xl">要餐具嗎？</p>
+                                    <div className="mb-8 p-6 bg-orange-50 rounded-3xl border-2 border-orange-200">
+                                        <p className="text-center font-black text-orange-800 mb-4 text-3xl">需要外帶餐具嗎？</p>
                                         <div className="grid grid-cols-2 gap-4">
-                                            {/* ✅ 順序對調：左邊不需要、右邊需要 */}
-                                            {/* ✅ 顏色調整：選中時 text-black */}
                                             <button 
                                                 onClick={() => setNeedUtensils(false)} 
-                                                className={`py-4 rounded-2xl font-black text-xl border-4 transition-all ${!needUtensils ? 'bg-green-600 text-black border-green-700 shadow-inner' : 'bg-white text-green-200 border-gray-100'}`}
+                                                className={`py-5 rounded-2xl font-black text-2xl border-4 transition-all ${!needUtensils ? 'bg-green-600 text-black border-green-700 shadow-inner' : 'bg-white text-green-200 border-gray-100'}`}
                                             >♻️ 不需要</button>
                                             <button 
                                                 onClick={() => setNeedUtensils(true)} 
-                                                className={`py-4 rounded-2xl font-black text-xl border-4 transition-all ${needUtensils ? 'bg-orange-500 text-black border-orange-600 shadow-inner' : 'bg-white text-orange-300 border-gray-100'}`}
-                                            >⭕ 需要</button>
+                                                className={`py-5 rounded-2xl font-black text-2xl border-4 transition-all ${needUtensils ? 'bg-orange-500 text-black border-orange-600 shadow-inner' : 'bg-white text-orange-300 border-gray-100'}`}
+                                            >🥢 需要</button>
                                         </div>
                                     </div>
                                 )}
