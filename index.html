@@ -58,7 +58,9 @@
             const [counts, setCounts] = useState({});
             const [isSending, setIsSending] = useState(false);
             const [finishData, setFinishData] = useState(null);
-            const [needUtensils, setNeedUtensils] = useState(true);
+            
+            // ✅ 調整：預設為不需要餐具 (false)
+            const [needUtensils, setNeedUtensils] = useState(false);
 
             useEffect(() => {
                 const checkTime = () => {
@@ -286,8 +288,16 @@
                                     <div className="mb-8 p-4 bg-orange-50 rounded-3xl border-2 border-orange-200">
                                         <p className="text-center font-black text-orange-800 mb-3 text-xl">需要外帶餐具嗎？</p>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <button onClick={() => setNeedUtensils(true)} className={`py-4 rounded-2xl font-black text-xl border-4 transition-all ${needUtensils ? 'bg-orange-500 text-white border-orange-600 shadow-inner' : 'bg-white text-orange-300 border-gray-100'}`}>🥢 需要</button>
-                                            <button onClick={() => setNeedUtensils(false)} className={`py-4 rounded-2xl font-black text-xl border-4 transition-all ${!needUtensils ? 'bg-green-600 text-white border-green-700 shadow-inner' : 'bg-white text-green-200 border-gray-100'}`}>♻️ 不需要</button>
+                                            {/* ✅ 順序對調：左邊不需要、右邊需要 */}
+                                            {/* ✅ 顏色調整：選中時 text-black */}
+                                            <button 
+                                                onClick={() => setNeedUtensils(false)} 
+                                                className={`py-4 rounded-2xl font-black text-xl border-4 transition-all ${!needUtensils ? 'bg-green-600 text-black border-green-700 shadow-inner' : 'bg-white text-green-200 border-gray-100'}`}
+                                            >♻️ 不需要</button>
+                                            <button 
+                                                onClick={() => setNeedUtensils(true)} 
+                                                className={`py-4 rounded-2xl font-black text-xl border-4 transition-all ${needUtensils ? 'bg-orange-500 text-black border-orange-600 shadow-inner' : 'bg-white text-orange-300 border-gray-100'}`}
+                                            >🥢 需要</button>
                                         </div>
                                     </div>
                                 )}
