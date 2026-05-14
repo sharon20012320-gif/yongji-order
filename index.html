@@ -175,7 +175,24 @@
                         <label className="block mb-4 font-bold text-lg text-center">選擇桌號：</label>
                         <div className="grid grid-cols-4 gap-3">
                             {[1,2,3,5,6,7,8,9,10,11].map(n => (
-                                <button key={n} onClick={()=>{setTable(n); setView('menu');}} className={`py-5 rounded-2xl text-2xl font-black border-2 ${table === n ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-50 border-orange-200 text-orange-700'}`}>{n}</button>
+                                <button key={n} onClick={{/* 減少人數按鈕 */}
+                                                        {/* 減少人數按鈕 */}
+                                                            <button 
+                                                                className="bg-gray-200 px-4 py-2 rounded-l-lg text-2xl"
+                                                                onClick={() => setPeople(prev => Math.max(1, prev - 1))} // 限制最小為 1
+                                                            >
+                                                                -
+                                                            </button>
+                                                            
+                                                            <span className="px-8 py-2 text-2xl font-bold border-t border-b">{people}</span>
+                                                            
+                                                            {/* 增加人數按鈕 */}
+                                                            <button 
+                                                                className="bg-gray-200 px-4 py-2 rounded-r-lg text-2xl"
+                                                                onClick={() => setPeople(prev => Math.min(10, prev + 1))} // 限制最大為 10
+                                                            >
+                                                                +
+                                                            </button>
                             ))}
                         </div>
                     </div>
