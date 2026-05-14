@@ -185,15 +185,16 @@
             if (view === 'finish') return (
                 <div className="flex flex-col items-center justify-center min-h-screen p-6">
                     <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center w-full max-w-sm border-t-8 border-orange-500">
-                        <div className="text-7xl mb-6">✅</div>
-                        <h2 className="text-4xl font-black text-gray-800 mb-2">訂單已送出！</h2>
-                        <p className="text-2xl font-bold text-gray-800 mb-4">謝謝您的惠顧</p>
-                        <p className="text-orange-600 font-bold text-2xl mb-1">單號：{finishData?.orderId}</p>
+                        <div className="text-7xl mb-6">✅</div> 
+                        <p className="text-orange-600 font-bold text-4xl mb-1">單號：{finishData?.orderId}</p>
+                        <h2 className="text-2xl font-black text-gray-800 mb-2">訂單已送出！</h2>
+                        <p className="text-3xl font-bold text-gray-800 mb-4">餐點準備中...感謝您耐心等候</p>
                         {finishData?.utensilNote && (
                             <p className="text-red-600 font-black text-xl mb-4 underline decoration-2">{finishData.utensilNote}</p>
                         )}
                         <p className="text-gray-400 font-bold text-sm mb-4">此號為流水號，與順序無關</p>
                         <p className="text-gray-400 text-xs mb-6 italic">送出時間：{finishData?.finishTime}</p>
+                        <p className="text-2xl font-bold text-gray-800 mb-4">謝謝惠顧</p>
                         <div className="text-left bg-orange-50 p-6 rounded-2xl mb-8 space-y-2">
                             {finishData?.displayLines.map((line, idx) => (
                                 <div key={idx} className="text-gray-600 font-bold">● {line}</div>
@@ -201,7 +202,7 @@
                             <div className="border-t border-orange-200 mt-4 pt-2 text-2xl font-black text-red-600 text-right">總計：${finishData?.totalPrice}</div>
                         </div>
                         <div className="bg-red-600 text-white py-6 px-4 rounded-2xl shadow-lg">
-                            <p className="text-2xl font-black mb-1">請至櫃檯結帳</p>
+                            <p className="text-2xl font-black mb-1">請至櫃檯結帳，謝謝</p>
                         </div>
                     </div>
                 </div>
