@@ -125,7 +125,7 @@
                     key: "yongji888",
                     orderType: orderType,
                     tableNum: table, 
-                    people: orderType === '內用' ? Number(people) : 0, // 強制轉成數字傳出
+                    people: orderType === '內用' ? Number(people) : 0,
                     items: displayLines.join(', ') + (orderType === '外帶' ? (needUtensils ? " | 【需要餐具】" : " | 【不需餐具】") : ""),
                     totalPrice: cart.reduce((s, i) => s + (i.unitP * i.qty), 0),
                     orderId: orderId
@@ -168,31 +168,22 @@
 
             if (view === 'setup') return (
                 <div className="flex flex-col items-center justify-center min-h-screen p-6">
-                    <div className="bg-white p-8 rounded-[2.5rem] shadow-xl w-full max-sm border border-orange-100">
+                    <div className="bg-white p-8 rounded-[2.5rem] shadow-xl w-full max-w-md border border-orange-100">
                         <h2 className="text-3xl font-black mb-8 text-center text-orange-800">用餐資訊</h2>
                         <label className="block mb-2 font-bold text-lg text-center">用餐人數：</label>
-                        <input type="number" value={people} onChange={(e)=>setPeople(e.target.value)} className="w-full p-5 border-2 border-orange-500 rounded-2xl text-center text-3xl mb-10" />
+                        <div className="flex justify-center items-center mb-10">
+                            <button className="bg-gray-200 px-6 py-3 rounded-l-lg text-3xl font-bold" onClick={() => setPeople(prev => Math.max(1, prev - 1))}>-</button>
+                            <span className="px-10 py-3 text-3xl font-bold border-t border-b w-24 text-center">{people}</span>
+                            <button className="bg-gray-200 px-6 py-3 rounded-r-lg text-3xl font-bold" onClick={() => setPeople(prev => Math.min(10, prev + 1))}>+</button>
+                        </div>
+                        
                         <label className="block mb-4 font-bold text-lg text-center">選擇桌號：</label>
                         <div className="grid grid-cols-4 gap-3">
                             {[1,2,3,5,6,7,8,9,10,11].map(n => (
-                                <button key={n} onClick={{/* 減少人數按鈕 */}
-                                                        {/* 減少人數按鈕 */}
-                                                            <button 
-                                                                className="bg-gray-200 px-4 py-2 rounded-l-lg text-2xl"
-                                                                onClick={() => setPeople(prev => Math.max(1, prev - 1))} // 限制最小為 1
-                                                            >
-                                                                -
-                                                            </button>
-                                                            
-                                                            <span className="px-8 py-2 text-2xl font-bold border-t border-b">{people}</span>
-                                                            
-                                                            {/* 增加人數按鈕 */}
-                                                            <button 
-                                                                className="bg-gray-200 px-4 py-2 rounded-r-lg text-2xl"
-                                                                onClick={() => setPeople(prev => Math.min(10, prev + 1))} // 限制最大為 10
-                                                            >
-                                                                +
-                                                            </button>
+                                <button key={n} onClick={() => { setTable(n.toString()); setView('menu'); }} 
+                                    className="py-4 bg-white border-2 border-orange-400 text-orange-600 rounded-xl text-2xl font-black hover:bg-orange-500 hover:text-white transition-colors">
+                                    {n}
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -209,7 +200,6 @@
                         {finishData?.utensilNote && (
                             <p className="text-red-600 font-black text-xl mb-4 underline decoration-2">{finishData.utensilNote}</p>
                         )}
-                        
                         <p className="text-gray-400 text-xs mb-6 italic">送出時間：{finishData?.finishTime}</p>
                         <div className="text-left bg-orange-50 p-6 rounded-2xl mb-8 space-y-2">
                             {finishData?.displayLines.map((line, idx) => (
@@ -309,11 +299,11 @@
                                         <div className="grid grid-cols-2 gap-4">
                                             <button 
                                                 onClick={() => setNeedUtensils(false)} 
-                                                className={`py-5 rounded-2xl font-black text-2xl border-4 transition-all ${!needUtensils ? 'bg-green-600 text-black border-green-700 shadow-inner' : 'bg-white text-green-200 border-gray-100'}`}
+                                                className={`py-5 rounded-2xl font-black text-2xl border-4 transition-all ${!needUtensils ? 'bg-green-600 text-white border-green-700 shadow-inner' : 'bg-white text-green-600 border-gray-100'}`}
                                             >♻️ 不需要</button>
                                             <button 
                                                 onClick={() => setNeedUtensils(true)} 
-                                                className={`py-5 rounded-2xl font-black text-2xl border-4 transition-all ${needUtensils ? 'bg-orange-500 text-black border-orange-600 shadow-inner' : 'bg-white text-orange-300 border-gray-100'}`}
+                                                className={`py-5 rounded-2xl font-black text-2xl border-4 transition-all ${needUtensils ? 'bg-orange-500 text-white border-orange-600 shadow-inner' : 'bg-white text-orange-500 border-gray-100'}`}
                                             >🥢 需要</button>
                                         </div>
                                     </div>
